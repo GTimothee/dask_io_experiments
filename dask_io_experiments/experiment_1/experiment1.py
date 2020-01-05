@@ -26,12 +26,20 @@ def run_to_hdf5(test):
         dask_config: contains the test configuration
     """
     flush_cache()
-    enable_clustering(test.buffer_size)
-    
+    if test.opti:
+        enable_clustering(test.buffer_size)
+    else:
+        disable_clustering()
+
     try:
         arr = getattr(test, 'case').get()
 
-        with dask.config.set(scheduler='single-threaded'):
+        if test.opti:
+            with dask.config.set(scheduler='single-threaded'):
+                t = time.time()
+                _ = arr.compute()
+                t = time.time() - t
+        else:
             t = time.time()
             _ = arr.compute()
             t = time.time() - t
@@ -53,7 +61,11 @@ def run_to_npy_stack(test):
         dask_config: contains the test configuration
     """
     flush_cache()
-    enable_clustering(test.buffer_size)
+    if test.opti:
+        enable_clustering(test.buffer_size)
+    else:
+        disable_clustering()
+
     a, b, c = getattr(test, 'case').get()
 
     try:

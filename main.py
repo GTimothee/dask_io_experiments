@@ -8,4 +8,4 @@ if __name__ == "__main__":
         physical_chunked_options=[False],
         chunk_types=['slabs', 'blocks'],
         scheduler_options=[False],
-        optimization_options=[True])
+        optimization_options=[False, True])
