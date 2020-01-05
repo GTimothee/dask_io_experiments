@@ -3,19 +3,22 @@ from time import gmtime, strftime
 import numpy as np
 from random import shuffle
 
-from dask_io_experiments.test_config import TestConfig
-from dask_io_experiments.dask_io_experiments.custom_setup import setup_all, EXP1_DIR
+from dask_io_experiments.custom_setup import setup_all, EXP1_DIR
 setup_all()
 
+import dask
 import dask.array as da
 from dask.diagnostics import ResourceProfiler, Profiler, CacheProfiler, visualize
 from cachey import nbytes
 
-from dask_io.dask_io.utils.utils import flush_cache
+from dask_io.dask_io.utils.utils import flush_cache, create_csv_file
 from dask_io.dask_io.main import enable_clustering, disable_clustering
+from dask_io.dask_io.utils.get_arrays import create_random_dask_array, save_to_hdf5
+
+from dask_io_experiments.test_config import TestConfig
 
 
-def run_to_hdf5(case):
+def run_to_hdf5(test):
     """ Execute a dask array with a given configuration.
     
     Arguments:
@@ -23,15 +26,18 @@ def run_to_hdf5(case):
         dask_config: contains the test configuration
     """
     flush_cache()
-    enable_clustering(case.buffer_size)
-    arr = case.get()
+    enable_clustering(test.buffer_size)
     
     try:
+        arr = getattr(test, 'case').get()
+
         with dask.config.set(scheduler='single-threaded'):
             t = time.time()
-                _ = arr.compute()
+            _ = arr.compute()
             t = time.time() - t
-            return t
+
+        getattr(test, 'case').clean()
+        return t
 
     except Exception as e:
         print(traceback.format_exc())
@@ -39,7 +45,7 @@ def run_to_hdf5(case):
         return False
 
 
-def run_to_npy_stack(case):
+def run_to_npy_stack(test):
     """ Execute a dask array with a given configuration.
     
     Arguments:
@@ -47,8 +53,8 @@ def run_to_npy_stack(case):
         dask_config: contains the test configuration
     """
     flush_cache()
-    enable_clustering(case.buffer_size)
-    a, b, c = case.get()
+    enable_clustering(test.buffer_size)
+    a, b, c = getattr(test, 'case').get()
 
     try:
         with dask.config.set(scheduler='single-threaded'):
@@ -73,7 +79,7 @@ def run_test(writer, test, output_dir):
         output_dir:
     """
     with Profiler() as prof, ResourceProfiler() as rprof, CacheProfiler(metric=nbytes) as cprof:    
-        t = run_to_hdf5(getattr(test, 'case'))
+        t = run_to_hdf5(test)
         uid = uuid.uuid4() 
         out_file_path = os.path.join(output_dir, 'output_imgs', str(uid) + '.html')
         out_file_path = None
@@ -209,8 +215,7 @@ def experiment(debug_mode,
         'results_filepath'
     ]
 
-    # csv_path = os.path.join(output_dir, 'exp1_' + strftime("%Y-%m-%d %H:%M:%S", gmtime()) + '_out.csv')
-    csv_path = os.path.join(output_dir, '_out.csv')
+    csv_path = os.path.join(output_dir, 'exp1_' + strftime("%Y-%m-%d %H:%M:%S", gmtime()) + '_out.csv')
     csv_out, writer = create_csv_file(csv_path, columns, delimiter=',', mode='w+')
 
     if not debug_mode: 
@@ -223,12 +228,9 @@ def experiment(debug_mode,
         if not os.path.isfile(getattr(test, "array_filepath")):
             try:
                 print(f'Creating input array...')
-                create_random_cube(storage_type="hdf5",
-                    file_path=getattr(test, 'array_filepath'),
-                    shape=getattr(test, 'cube_shape'),  
-                    physik_chunks_shape=getattr(test, 'physik_chunks_shape'), 
-                    dtype=np.float16,
-                    distrib='normal')
+                arr = create_random_dask_array(getattr(test, 'cube_shape'), distrib='uniform', dtype=np.float16)
+                save_to_hdf5(arr, getattr(test, 'array_filepath'), physik_cs=getattr(test, 'physik_chunks_shape'), key='/data', compression=None)
+
             except Exception as e:
                 print(traceback.format_exc())
                 print("Input array creation failed.")
