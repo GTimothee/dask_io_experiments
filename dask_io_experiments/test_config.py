@@ -1,8 +1,8 @@
 import os
 import traceback
 
-from dask_io.dask_io.cases.case_config import CaseConfig
-from dask_io.dask_io.utils.utils import ONE_GIG
+from dask_io.cases.case_config import CaseConfig
+from dask_io.utils.utils import ONE_GIG
 
 from .custom_setup import SSD_PATH, HDD_PATH
 
@@ -72,7 +72,8 @@ class TestConfig():
         buffer_sizes = {
             "very_small": ONE_GIG,
             "small": 5.5 * ONE_GIG,
-            "big": 15 * ONE_GIG
+            "big": 15 * ONE_GIG,
+            "big_brain": 15 * ONE_GIG
         }
         return buffer_sizes[self.cube_type]
 
@@ -92,6 +93,10 @@ class TestConfig():
             'very_small':{  # for local tests
                 'physik_chunked': 4,
                 'not_physik_chunked': 5
+            },
+            'big_brain':{
+                'physik_chunked': 6,
+                'not_physik_chunked': 7
             }
         }
         return cube_refs[self.cube_type][chunk_status]
@@ -102,5 +107,6 @@ class TestConfig():
             "very_small": (400, 400, 400),
             "small": (1400, 1400, 1400), 
             "big": (3500, 3500, 3500),
+            "big_brain": (3850, 3025, 3500)
         }
         return cube_shapes[self.cube_type]

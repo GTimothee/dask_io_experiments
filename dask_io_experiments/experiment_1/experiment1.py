@@ -11,9 +11,9 @@ import dask.array as da
 from dask.diagnostics import ResourceProfiler, Profiler, CacheProfiler, visualize
 from cachey import nbytes
 
-from dask_io.dask_io.utils.utils import flush_cache, create_csv_file
-from dask_io.dask_io.main import enable_clustering, disable_clustering
-from dask_io.dask_io.utils.get_arrays import create_random_dask_array, save_to_hdf5
+from dask_io.utils.utils import flush_cache, create_csv_file
+from dask_io.main import enable_clustering, disable_clustering
+from dask_io.utils.get_arrays import create_random_dask_array, save_to_hdf5
 
 from dask_io_experiments.test_config import TestConfig
 
@@ -156,7 +156,7 @@ chunks_shapes = {
         "blocks":[
             (700, 700, 700)],
         "slabs":[
-            ("auto", 1400, 1400), #,]
+            ("auto", 1400, 1400), 
             (5, 1400, 1400),
             (175, 1400, 1400)]
     },
@@ -165,13 +165,18 @@ chunks_shapes = {
             (350, 350, 350),
             (500, 500, 500),
             (875, 875, 875),],
-            # (1750, 1750, 1750)], -> 1 block ne rentre pas en mémoire
+            # (1750, 1750, 1750)], -> 1 block ne rentre pas en mémoire? refaire les calculs avec 2 bytes par valeur au lieu de 4
         "slabs":[
             # (3500, 3500, "auto"), -> dont know size
             # (3500, 3500, 1), -> trop gros graph
             (28, 3500, 3500),
             (50, 3500, 3500),]
-            # (3500, 3500, 500)] -> 1 block ne rentre pas en mémoire
+            # (3500, 3500, 500)] -> 1 block ne rentre pas en mémoire? refaire les calculs avec 2 bytes par valeur au lieu de 4
+    },
+    "big_brain":{
+        "blocks": [
+            (770, 605, 700)
+        ]
     }
 }
 
