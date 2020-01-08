@@ -176,6 +176,9 @@ chunks_shapes = {
     "big_brain":{
         "blocks": [
             (770, 605, 700)
+        ],
+        "slabs": [
+            
         ]
     }
 }

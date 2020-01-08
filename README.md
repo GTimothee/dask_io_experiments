@@ -16,10 +16,12 @@ def setup_all():
     setup_dask_io_package()
 
 def setup_custom_dask():
-    custom_dask_path = "/home/tim/projects/dask_io_experiments/dask"
+    custom_dask_path = ""
     sys.path.insert(0, custom_dask_path)
 
 def setup_dask_io_package():
-    dask_io_path = "/home/tim/projects/dask_io_experiments/dask_io"
+    dask_io_path = ""
     sys.path.insert(0, dask_io_path)
 ``` 
+
++ create `outputs` dir in experiments_1 and 2 
