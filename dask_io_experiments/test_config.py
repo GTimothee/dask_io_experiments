@@ -38,7 +38,9 @@ class TestConfig():
 
 
     def print_config(self):
-        print(f'\nTest-------------------')
+        print(f'\n-------------------')
+        print(f'Test configuration')
+        print(f'-------------------')
         print(f'\nTest infos:')
         print(f'\tHardware: {self.hardware}')
         print(f'\tChunks shape: {self.chunks_shape}')

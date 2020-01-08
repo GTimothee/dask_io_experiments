@@ -17,6 +17,7 @@ from dask_io.utils.get_arrays import create_random_dask_array, save_to_hdf5
 
 from dask_io_experiments.test_config import TestConfig
 
+from monitor.monitor import Monitor
 
 def run_to_hdf5(test):
     """ Execute a dask array with a given configuration.
@@ -44,7 +45,7 @@ def run_to_hdf5(test):
             _ = arr.compute()
             t = time.time() - t
 
-        getattr(test, 'case').clean()
+        getattr(test, 'case').clean()  # close hdf5 file.
         return t
 
     except Exception as e:
@@ -90,11 +91,28 @@ def run_test(writer, test, output_dir):
         test:
         output_dir:
     """
-    with Profiler() as prof, ResourceProfiler() as rprof, CacheProfiler(metric=nbytes) as cprof:    
-        t = run_to_hdf5(test)
+    with Profiler() as prof, ResourceProfiler() as rprof, CacheProfiler(metric=nbytes) as cprof:  
         uid = uuid.uuid4() 
-        out_file_path = os.path.join(output_dir, 'output_imgs', str(uid) + '.html')
-        out_file_path = None
+
+        # monitor system resources
+        log_filename = str(uid) + '.monitor.log'
+        _monitor = Monitor(enable_print=False, enable_log=False, save_data=True)
+        _monitor.disable_clearconsole()
+        _monitor.set_delay(15)
+        _monitor.start() 
+        try:
+            t = run_to_hdf5(test)
+        finally:
+            _monitor.stop()
+            data = _monitor.get_pile()
+            log_filepath = os.path.join(output_dir, log_filename)
+            with open(log_filepath, 'w+') as logf:
+                logf.writelines(data)
+
+        # save dask diagnostics
+        diagnostics_filename = str(uid) + '.html'
+        print(f'Visualization file: {diagnostics_filename}')
+        out_file_path = os.path.join(output_dir, diagnostics_filename)
 
         if t:
             visualize([prof, rprof, cprof], out_file_path)
@@ -108,7 +126,7 @@ def run_test(writer, test, output_dir):
             getattr(test, 'scheduler_opti'), 
             getattr(test, 'buffer_size'), 
             t,
-            out_file_path,
+            diagnostics_filename,
             uid 
         ])
 
