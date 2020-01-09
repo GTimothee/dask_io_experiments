@@ -6,7 +6,6 @@ from dask_io.utils.utils import ONE_GIG
 
 from .custom_setup import SSD_PATH, HDD_PATH
 
-
 class TestConfig():
     def __init__(self, test_params):
         self.hardware = test_params[0]
@@ -24,7 +23,7 @@ class TestConfig():
         self.physik_chunks_shape = self.chunks_shape if self.physik_chunked else None
 
         # create case config
-        self.array_filepath = os.path.join(self.get_hardware_path(), str(self.get_cube_ref()) + '.hdf5')
+        self.array_filepath = os.path.join(self.get_hardware_path(), str(self.cube_ref) + '.hdf5')
         split_filepath = os.path.join(self.get_hardware_path(), "split.hdf5")
         
         try:
@@ -82,7 +81,10 @@ class TestConfig():
 
     def get_cube_ref(self):
         # chunked mean physical chunk here
-        chunk_status = "physik_chunked" if self.physik_chunked else "not_physik_chunked"
+        chunk_status = "not_physik_chunked"
+        if self.physik_chunked == True:
+            chunk_status = "physik_chunked"
+
         cube_refs = {
             'small': {
                 'physik_chunked': 0, 

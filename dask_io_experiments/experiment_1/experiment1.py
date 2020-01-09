@@ -14,10 +14,15 @@ from cachey import nbytes
 from dask_io.utils.utils import flush_cache, create_csv_file
 from dask_io.main import enable_clustering, disable_clustering
 from dask_io.utils.get_arrays import create_random_dask_array, save_to_hdf5
+from dask_io.cases.case_validation import check_split_output_hdf5
 
 from dask_io_experiments.test_config import TestConfig
 
 from monitor.monitor import Monitor
+
+def test_goodness_split(case_obj):
+    disable_clustering()
+    check_split_output_hdf5(case_obj.array_filepath, case_obj.out_filepath, case_obj.chunks_shape)
 
 def run_to_hdf5(test):
     """ Execute a dask array with a given configuration.
@@ -129,6 +134,9 @@ def run_test(writer, test, output_dir):
             diagnostics_filename,
             uid 
         ])
+
+        case = getattr(test, 'case')
+        test_goodness_split(case)
 
 
 def create_tests(options):
