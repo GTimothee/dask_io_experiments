@@ -109,7 +109,7 @@ class ClusteredCubicModel():
         return self.nb_loads
 
 
-    def get_nb_seeks_per_load():
+    def get_nb_seeks_per_load(self):
         if not self.nb_seeks_per_load:
             nbvoxels_per_blocklength = self.chunks_shape[0]
             if self.strategy == "SINGLE_BLOCKS":
