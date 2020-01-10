@@ -11,7 +11,9 @@ def exp():
         physical_chunked_options=[False],
         chunk_types=['blocks'],
         scheduler_options=[False], # dont care with new function
-        optimization_options=[True])
+        optimization_options=[False],
+        nthreads_opti=[1],
+        nthreads_non_opti=[1])
 
 def verify():
     """ For debug purposes.

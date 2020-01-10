@@ -24,6 +24,7 @@ def test_goodness_split(case_obj):
     disable_clustering()
     check_split_output_hdf5(case_obj.array_filepath, case_obj.out_filepath, case_obj.chunks_shape)
 
+
 def run_to_hdf5(test):
     """ Execute a dask array with a given configuration.
     
@@ -40,15 +41,21 @@ def run_to_hdf5(test):
     try:
         arr = getattr(test, 'case').get()
 
-        if test.opti:
+        if (getattr(test, 'opti') and getattr(test, 'nthreads_opti') == 1) or \
+            (not getattr(test, 'opti') and getattr(test, 'nthreads_non_opti') == 1):
+
+            print(f'Using the `single-threaded` scheduler...')
             with dask.config.set(scheduler='single-threaded'):
                 t = time.time()
                 _ = arr.compute()
                 t = time.time() - t
-        else:
+        elif (getattr(test, 'opti') and getattr(test, 'nthreads_opti') == None) or \
+            (not getattr(test, 'opti') and getattr(test, 'nthreads_non_opti') == None):
             t = time.time()
             _ = arr.compute()
             t = time.time() - t
+        else: 
+            raise ValueError(f'Using n threads is not yet supported.')
 
         getattr(test, 'case').clean()  # close hdf5 file.
         return t
@@ -164,7 +171,7 @@ def create_tests(options):
     tests_params = [e for e in itertools.product(*options)]
     tests = list()
     for params in tests_params:
-        if len(params) == 6:
+        if len(params) == 8:
             tests = tests + create_possible_tests(params)
 
     if not len(tests) > 0:
@@ -217,7 +224,9 @@ def experiment(debug_mode,
     physical_chunked_options,
     chunk_types,
     scheduler_options,
-    optimization_options):
+    optimization_options,
+    nthreads_opti=[1],
+    nthreads_non_opti=[None]):
 
     """ Apply the split algorithm using Dask arrays.
 
@@ -234,6 +243,8 @@ def experiment(debug_mode,
             False means need to run the tests (with repetitions etc.). 
             True means we will try the algorithm to see if the graph has been optimized as we wanted. 
             Dont run the actual tests, just the optimization.
+        nthreads_opti: nb threads to use in optimized mode. default is 1.
+        nthreads_non_opti: default uses all threads possible as Dask's default.
     """
     
     output_dir = os.path.join(EXP1_DIR, 'outputs')
@@ -247,6 +258,8 @@ def experiment(debug_mode,
         chunk_types,
         scheduler_options,
         optimization_options,
+        nthreads_opti,
+        nthreads_non_opti
     ])
     print(f'Done.')
 

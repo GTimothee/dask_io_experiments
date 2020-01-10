@@ -14,7 +14,9 @@ class TestConfig():
         self.chunk_type = test_params[3]
         self.scheduler_opti = test_params[4]
         self.opti = test_params[5]
-        self.chunks_shape = test_params[6]
+        self.nthreads_opti = test_params[6]
+        self.nthreads_non_opti = test_params[7]
+        self.chunks_shape = test_params[8]
 
         # compute info from parameters
         self.cube_ref = self.get_cube_ref()
@@ -49,6 +51,8 @@ class TestConfig():
         print(f'\tScheduler optimization set: {self.scheduler_opti}')
         print(f'\tBuffer size: {self.buffer_size} bytes')
         print(f'\tHardware: {self.hardware}')
+        print(f'\tNb threads in optimized mode: {self.nthreads_opti}')
+        print(f'\tNb threads in non optimized mode:: {self.nthreads_non_opti}')
 
         print(f'\nCube infos:')
         print(f'\tCube ref: {self.cube_ref}')
