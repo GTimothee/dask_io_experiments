@@ -174,8 +174,7 @@ def create_tests(options):
     tests_params = [e for e in itertools.product(*options)]
     tests = list()
     for params in tests_params:
-        if len(params) == 8:
-            tests = tests + create_possible_tests(params)
+        tests = tests + create_possible_tests(params)
 
     if not len(tests) > 0:
         print("Tests creation failed.")
@@ -229,6 +228,7 @@ def experiment(debug_mode,
     chunk_types,
     scheduler_options,
     optimization_options,
+    buffer_sizes=[None],
     nthreads_opti=[1],
     nthreads_non_opti=[None]):
 
@@ -261,6 +261,7 @@ def experiment(debug_mode,
         chunk_types,
         scheduler_options,
         optimization_options,
+        buffer_sizes,
         nthreads_opti,
         nthreads_non_opti
     ])

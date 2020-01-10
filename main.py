@@ -7,16 +7,27 @@ from dask_io.utils.utils import ONE_GIG
 import numpy as np
 
 def exp():
+    all_buffer_sizes = [
+        3 * ONE_GIG,
+        6 * ONE_GIG, 
+        9 * ONE_GIG, 
+        12 * ONE_GIG, 
+        15 * ONE_GIG
+    ]
+
     experiment1(debug_mode=False,
         nb_repetitions=1,
         hardwares=["hdd"],
-        cube_types=['big_brain'],
+        cube_types=['small'],
         physical_chunked_options=[False],
         chunk_types=['blocks'],
         scheduler_options=[False], # dont care with new function
-        optimization_options=[False],
+        optimization_options=[False, True],
+        buffer_sizes=[
+            3 * ONE_GIG,
+            6 * ONE_GIG,],
         nthreads_opti=[1],
-        nthreads_non_opti=[1])
+        nthreads_non_opti=[None])
 
 
 def verify():
@@ -137,4 +148,4 @@ def test_seek_model():
 
 
 if __name__ == "__main__":
-    test_seek_model()
+    exp()

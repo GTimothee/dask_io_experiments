@@ -16,14 +16,16 @@ class TestConfig():
         self.chunk_type = test_params[3]
         self.scheduler_opti = test_params[4]
         self.opti = test_params[5]
-        self.nthreads_opti = test_params[6]
-        self.nthreads_non_opti = test_params[7]
-        self.chunks_shape = test_params[8]
+        self.buffer_size = test_params[6]
+        if self.buffer_size == None:
+            self.buffer_size = self.get_buffer_size()
+        self.nthreads_opti = test_params[7]
+        self.nthreads_non_opti = test_params[8]
+        self.chunks_shape = test_params[9]
 
         # compute info from parameters
         self.cube_ref = self.get_cube_ref()
         self.cube_shape = self.get_cube_shape()
-        self.buffer_size = self.get_buffer_size()
         self.physik_chunks_shape = self.chunks_shape if self.physik_chunked else None
 
         # create case config
