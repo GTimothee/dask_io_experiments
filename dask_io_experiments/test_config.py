@@ -7,6 +7,8 @@ from dask_io.utils.utils import ONE_GIG
 from .custom_setup import SSD_PATH, HDD_PATH
 
 class TestConfig():
+    """ WARNING: for split only for the moment
+    """
     def __init__(self, test_params):
         self.hardware = test_params[0]
         self.cube_type = test_params[1]

@@ -183,6 +183,11 @@ def create_tests(options):
     return tests
         
 
+""" Classic issues with shape selection:
+- 1 block ne rentre pas en mémoire
+- trop gros graph
+- dont know size if use `auto`
+"""
 chunks_shapes = {
     "very_small":{
         "blocks":[(200, 200, 200)],
@@ -201,17 +206,13 @@ chunks_shapes = {
             (350, 350, 350),
             (500, 500, 500),
             (875, 875, 875),],
-            # (1750, 1750, 1750)], -> 1 block ne rentre pas en mémoire? refaire les calculs avec 2 bytes par valeur au lieu de 4
         "slabs":[
-            # (3500, 3500, "auto"), -> dont know size
-            # (3500, 3500, 1), -> trop gros graph
             (28, 3500, 3500),
             (50, 3500, 3500),]
-            # (3500, 3500, 500)] -> 1 block ne rentre pas en mémoire? refaire les calculs avec 2 bytes par valeur au lieu de 4
     },
     "big_brain":{
         "blocks": [
-            (770, 605, 700)
+            (770, 605, 700) # 125
         ],
         "slabs": [
             

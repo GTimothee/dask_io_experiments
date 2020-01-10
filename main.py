@@ -1,7 +1,4 @@
 from dask_io_experiments.experiment_1.experiment1 import experiment as experiment1
-from dask_io_experiments.experiment_1.experiment1 import test_goodness_split
-from dask_io_experiments.test_config import TestConfig
-
 
 def exp():
     experiment1(debug_mode=False,
@@ -15,9 +12,14 @@ def exp():
         nthreads_opti=[1],
         nthreads_non_opti=[1])
 
+
 def verify():
-    """ For debug purposes.
+    """ Verify input array vs output split file (containing splits).
+    TODO: add this feature as a script
     """
+    from dask_io_experiments.experiment_1.experiment1 import test_goodness_split
+    from dask_io_experiments.test_config import TestConfig
+
     options = [
         'hdd',
         'big_brain',
@@ -25,11 +27,43 @@ def verify():
         'blocks',
         'False', # dont care with new function
         'True',
-        (770, 605, 700)
+        None, 
+        None,
+        (770, 605, 700),
     ]
     test_obj = TestConfig(options)
     test_obj.print_config()
-    _ = test_goodness_split(test_obj.case)
+    _ = test_goodness_split(getattr(test_obj, 'case'))
+
+
+def seek_model():
+    """
+    TODO: add this feature as a script
+    """
+    from dask_io_experiments.seek_model import ClusteredCubicModel
+    from dask_io_experiments.custom_setup import HDD_PATH
+    from dask_io.cases.case_config import CaseConfig
+    from dask_io.utils.utils import ONE_GIG
+    import os
+    import numpy as np
+
+    buffer_size = 5.5 * ONE_GIG
+    shape=(3850, 3025, 3500)
+    chunks_shape=(770, 605, 700)
+    chunk_dims = np.array(shape)/np.array(chunks_shape)
+    chunk_dims = tuple(chunk_dims.reshape(1, -1)[0])
+    print(chunk_dims)
+
+    params = [shape, 
+        chunks_shape, 
+        chunk_dims, 
+        np.dtype('float16'), 
+        buffer_size]
+
+    model = ClusteredCubicModel(*params)
+    nb_seeks = model.get_nb_seeks()
+    print(f'nb seeks: {nb_seeks}')
+
 
 if __name__ == "__main__":
-    exp()
+    seek_model()

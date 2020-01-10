@@ -1,14 +1,8 @@
 from dask_io.utils.array_utils import get_arr_shapes
 import math
 
-CLUSTERED_STRATEGIES = (
-    "SINGLE_BLOCKS",
-    "COMPLETE_ROWS",
-    "COMPLETE_SLICES"
-)
-
 class ClusteredCubicModel():
-    def __init__(self, arr, buffer_size):
+    def __init__(self, shape, chunks_shape, chunk_dims, dtype, buffer_size):
         """ 
         Arguments:
         ---------
@@ -20,14 +14,21 @@ class ClusteredCubicModel():
             >> model = ClusteredCubicModel(arr, buffer_size)
             >> model.get_nb_seeks()
         """
-        self.shape, self.chunks_shape, \
-            self.chunk_dims, self.dtype = get_arr_shapes(arr, dtype=True)
+        self.shape = shape
+        self.chunks_shape = chunks_shape
+        self.chunk_dims = chunk_dims 
+        self.dtype = dtype
+        self.buffer_size = buffer_size
 
+        from collections import namedtuple
+        Strategies = namedtuple('Strategies', ['SINGLE_BLOCKS', 'COMPLETE_ROWS', 'COMPLETE_SLICES'])
+        self.CLUSTERED_STRATEGIES = Strategies('SINGLE_BLOCKS', 'COMPLETE_ROWS', 'COMPLETE_SLICES')
+        
         self.buffer_size = buffer_size
         self.nb_chunks_per_row = self.chunk_dims[0]
         self.nb_chunks = self.chunk_dims[0] **3
         self.nb_voxels = self.shape[0] **3
-        self.arr_mem_size = self.nb_voxels * self.dtype.itemsize  # in bytes
+        self.arr_mem_size = self.nb_voxels * dtype.itemsize  # in bytes
         self.strategy = None
         self.strategy = self.get_strategy()
 
@@ -38,6 +39,13 @@ class ClusteredCubicModel():
         self.memory_used = None
         self.nb_seeks = None
         return
+
+
+    @classmethod
+    def from_array(cls, arr, buffer_size):
+        shape, chunks_shape, \
+            chunk_dims, dtype = get_arr_shapes(arr, dtype=True)
+        return cls(shape, chunks_shape, chunk_dims, dtype, buffer_size)
 
 
     def print_infos(self):
@@ -63,9 +71,9 @@ class ClusteredCubicModel():
 
             # find strategy
             if self.buffer_size < self.nb_bytes_per_row:
-                self.strategy = CLUSTERED_STRATEGIES.SINGLE_BLOCKS
+                self.strategy = self.CLUSTERED_STRATEGIES.SINGLE_BLOCKS
             elif self.buffer_size < self.nb_bytes_per_slice:
-                self.strategy = CLUSTERED_STRATEGIES.COMPLETE_ROWS
+                self.strategy = self.CLUSTERED_STRATEGIES.COMPLETE_ROWS
             else:
                 self.strategy = self.CLUSTERED_STRATEGIES.COMPLETE_SLICES    
         return self.strategy
@@ -73,17 +81,17 @@ class ClusteredCubicModel():
 
     def get_memory_used(self):
         if not self.memory_used:
-            if self.strategy == "SINGLE_BLOCKS":
+            if self.strategy == self.CLUSTERED_STRATEGIES.SINGLE_BLOCKS:
                 nb_chunks_per_load = math.floor(self.buffer_size / self.nb_bytes_per_chunk)
-                nb_bytes_per_obj = nb_bytes_per_chunk
+                nb_bytes_per_obj = self.nb_bytes_per_chunk
                 nb_obj_per_load = nb_chunks_per_load
-            elif self.strategy == "COMPLETE_ROWS":
+            elif self.strategy == self.CLUSTERED_STRATEGIES.COMPLETE_ROWS:
                 nb_rows_per_load = math.floor(self.buffer_size / self.nb_bytes_per_row)
-                nb_bytes_per_obj = nb_bytes_per_row
+                nb_bytes_per_obj = self.nb_bytes_per_row
                 nb_obj_per_load = nb_rows_per_load
-            elif self.strategy == "COMPLETE_SLICES":
+            elif self.strategy == self.CLUSTERED_STRATEGIES.COMPLETE_SLICES:
                 nb_slices_per_load = math.floor(self.buffer_size / self.nb_bytes_per_slice)
-                nb_bytes_per_obj = nb_bytes_per_slice
+                nb_bytes_per_obj = self.nb_bytes_per_slice
                 nb_obj_per_load = nb_slices_per_load
             else:
                 raise ValueError('Strategy does not exist for clustered model.')
@@ -94,15 +102,15 @@ class ClusteredCubicModel():
 
     def get_nb_loads(self):
         if not self.nb_loads:
-            if self.strategy == "SINGLE_BLOCKS":
+            if self.strategy == self.CLUSTERED_STRATEGIES.SINGLE_BLOCKS:
                 nb_rows = self.nb_chunks_per_row **2  # (=nb rows per slice * nb_slices)
                 block_row_size = self.arr_mem_size / nb_rows
                 self.nb_loads = math.ceil(block_row_size / self.memory_used) * nb_rows
-            elif self.strategy == "COMPLETE_ROWS":
+            elif self.strategy == self.CLUSTERED_STRATEGIES.COMPLETE_ROWS:
                 nb_slices = self.nb_chunks_per_row
                 slice_size = self.arr_mem_size / nb_slices
                 self.nb_loads = math.ceil(slice_size / self.memory_used) * nb_slices
-            elif self.strategy == "COMPLETE_SLICES":
+            elif self.strategy == self.CLUSTERED_STRATEGIES.COMPLETE_SLICES:
                 self.nb_loads = math.ceil(self.arr_mem_size / self.memory_used)
             else:
                 raise ValueError('Strategy does not exist for clustered model.')
@@ -112,11 +120,11 @@ class ClusteredCubicModel():
     def get_nb_seeks_per_load(self):
         if not self.nb_seeks_per_load:
             nbvoxels_per_blocklength = self.chunks_shape[0]
-            if self.strategy == "SINGLE_BLOCKS":
+            if self.strategy == self.CLUSTERED_STRATEGIES.SINGLE_BLOCKS:
                 self.nb_seeks_per_load = nbvoxels_per_blocklength **2
-            elif self.strategy == "COMPLETE_ROWS":
+            elif self.strategy == self.CLUSTERED_STRATEGIES.COMPLETE_ROWS:
                 self.nb_seeks_per_load = nbvoxels_per_blocklength
-            elif self.strategy == "COMPLETE_SLICES":
+            elif self.strategy == self.CLUSTERED_STRATEGIES.COMPLETE_SLICES:
                 self.nb_seeks_per_load = 1
             else:
                 raise ValueError('Strategy does not exist for clustered model.')
@@ -127,9 +135,12 @@ class ClusteredCubicModel():
         """ Return the number of seeks introduced by splitting the input array.
         Main function to be called.
         """
-        if not self.nb_seeks:
-            self.nb_seeks = self.nb_chunks + \
-                self.get_nb_loads() * self.get_nb_seeks_per_load() 
+        if self.nb_seeks == None:
+            self.get_memory_used();
+            self.nb_seeks = self.nb_chunks + self.get_nb_loads() * self.get_nb_seeks_per_load()
+            print(f'nb chunks: {self.nb_chunks}')
+            print(f'nb loads: {self.nb_loads}')
+            print(f'nb seeks/load: {self.nb_seeks_per_load}')
         return self.nb_seeks        
 
 
