@@ -22,8 +22,11 @@ from monitor.monitor import Monitor
 
 def test_goodness_split(case_obj):
     disable_clustering()
-    check_split_output_hdf5(case_obj.array_filepath, case_obj.out_filepath, case_obj.chunks_shape)
-
+    try:
+        return check_split_output_hdf5(case_obj.array_filepath, case_obj.out_filepath, case_obj.chunks_shape)
+    except:
+        return None
+        
 
 def run_to_hdf5(test):
     """ Execute a dask array with a given configuration.
@@ -129,6 +132,9 @@ def run_test(writer, test, output_dir):
         if t:
             visualize([prof, rprof, cprof], out_file_path)
 
+        case = getattr(test, 'case')
+        successful = test_goodness_split(case)
+
         writer.writerow([
             getattr(test, 'hardware'), 
             getattr(test, 'cube_ref'),
@@ -137,13 +143,10 @@ def run_test(writer, test, output_dir):
             getattr(test, 'opti'), 
             getattr(test, 'scheduler_opti'), 
             getattr(test, 'buffer_size'), 
-            t,
-            diagnostics_filename,
-            uid 
+            successful,
+            round(t, 4),
+            diagnostics_filename
         ])
-
-        case = getattr(test, 'case')
-        test_goodness_split(case)
 
 
 def create_tests(options):
@@ -248,7 +251,6 @@ def experiment(debug_mode,
     """
     
     output_dir = os.path.join(EXP1_DIR, 'outputs')
-    out_filepath = os.path.join(output_dir, 'exp1_out.csv')
 
     print(f'Loading tests...')
     tests = create_tests([
@@ -270,11 +272,13 @@ def experiment(debug_mode,
         'opti',
         'scheduler_opti',
         'buffer_size', 
+        'split_successful',
         'processing_time',
         'results_filepath'
     ]
 
     csv_path = os.path.join(output_dir, 'exp1_' + strftime("%Y-%m-%d %H:%M:%S", gmtime()) + '_out.csv')
+    print(f'Creating csv file at {csv_path}.')
     csv_out, writer = create_csv_file(csv_path, columns, delimiter=',', mode='w+')
 
     if not debug_mode: 

@@ -29,7 +29,7 @@ def verify():
     ]
     test_obj = TestConfig(options)
     test_obj.print_config()
-    test_goodness_split(test_obj.case)
+    _ = test_goodness_split(test_obj.case)
 
 if __name__ == "__main__":
     exp()
