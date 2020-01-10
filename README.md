@@ -6,22 +6,22 @@ Experiments and benchmarks for the dask_io module.
 add dask_io_experiments.custom_setup.py
 
 ``` 
-import sys
+import sys, os
 EXP1_DIR = ""
 HDD_PATH = ""
 SSD_PATH = ""
 
+WORKSPACE = ""
+PROJECT = ""
 def setup_all():
-    setup_custom_dask()
-    setup_dask_io_package()
-
-def setup_custom_dask():
-    custom_dask_path = ""
-    sys.path.insert(0, custom_dask_path)
-
-def setup_dask_io_package():
-    dask_io_path = ""
-    sys.path.insert(0, dask_io_path)
+    paths = [
+        os.path.join(WORKSPACE, 'dask'),
+        os.path.join(WORKSPACE, PROJECT, 'dask_io'),
+        os.path.join(WORKSPACE, PROJECT, 'monitor')
+    ]
+    
+    for path in paths:
+        sys.path.insert(0, path)
 ``` 
 
 + create `outputs` dir in experiments_1 and 2 
