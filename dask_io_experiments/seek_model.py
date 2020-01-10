@@ -29,10 +29,9 @@ class ClusteredCubicModel():
         self.nb_chunks = self.chunk_dims[0] **3
         self.nb_voxels = self.shape[0] **3
         self.arr_mem_size = self.nb_voxels * dtype.itemsize  # in bytes
+        
         self.strategy = None
         self.strategy = self.get_strategy()
-
-        self.print_infos()
 
         self.nb_seeks_per_load = None 
         self.nb_loads = None
@@ -138,9 +137,12 @@ class ClusteredCubicModel():
         if self.nb_seeks == None:
             self.get_memory_used();
             self.nb_seeks = self.nb_chunks + self.get_nb_loads() * self.get_nb_seeks_per_load()
-            print(f'nb chunks: {self.nb_chunks}')
-            print(f'nb loads: {self.nb_loads}')
-            print(f'nb seeks/load: {self.nb_seeks_per_load}')
+
+            print(f'\nSeek model details of computation:')
+            print(f'self.nb_chunks + self.get_nb_loads() * self.get_nb_seeks_per_load()')
+            print(f'- nb chunks: {self.nb_chunks}')
+            print(f'- nb loads: {self.nb_loads}')
+            print(f'- nb seeks/load: {self.nb_seeks_per_load}')
         return self.nb_seeks        
 
 

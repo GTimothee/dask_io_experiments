@@ -1,4 +1,10 @@
 from dask_io_experiments.experiment_1.experiment1 import experiment as experiment1
+from dask_io_experiments.seek_model import ClusteredCubicModel
+
+from dask_io.cases.case_config import CaseConfig
+from dask_io.utils.utils import ONE_GIG
+
+import numpy as np
 
 def exp():
     experiment1(debug_mode=False,
@@ -40,13 +46,6 @@ def seek_model():
     """
     TODO: add this feature as a script
     """
-    from dask_io_experiments.seek_model import ClusteredCubicModel
-    from dask_io_experiments.custom_setup import HDD_PATH
-    from dask_io.cases.case_config import CaseConfig
-    from dask_io.utils.utils import ONE_GIG
-    import os
-    import numpy as np
-
     buffer_size = 5.5 * ONE_GIG
     shape=(3850, 3025, 3500)
     chunks_shape=(770, 605, 700)
@@ -61,9 +60,81 @@ def seek_model():
         buffer_size]
 
     model = ClusteredCubicModel(*params)
+    model.print_infos()
     nb_seeks = model.get_nb_seeks()
     print(f'nb seeks: {nb_seeks}')
 
 
+def test_seek_model():
+    shape = (20, 20, 20)
+    chunks_shape = (5, 5, 5)
+    chunk_dims = np.array(shape)/np.array(chunks_shape)
+    chunk_dims = tuple(chunk_dims.reshape(1, -1)[0])
+    dtype = np.dtype('int8')  # 1 byte (for simpler test case creation)
+    _block_size = chunks_shape[0] * chunks_shape[1] * chunks_shape[2]
+    _block_row_size = _block_size * chunk_dims[2]
+    _block_slice_size = _block_row_size * chunk_dims[1]
+
+    # in a F order file
+    print(f'\nTest cases setup:')
+    print(f'block size: {_block_size}')
+    print(f'nb blocks per row: {chunk_dims[2]}')
+    print(f'block_row_size: {_block_row_size}')
+    print(f'nb_rows_per_slice: {chunk_dims[1]}')
+    print(f'block_slice_size: {_block_slice_size}')
+
+    params = {
+        0: [shape, 
+        chunks_shape, 
+        chunk_dims, 
+        dtype, 
+        3 * _block_size],
+        1: [shape, 
+        chunks_shape, 
+        chunk_dims, 
+        dtype, 
+        3 * _block_row_size],
+        2: [shape, 
+        chunks_shape, 
+        chunk_dims, 
+        dtype, 
+        3 * _block_slice_size],
+    }
+
+    """  
+        case 1:
+        -------
+        5x5: nb seeks for one buffer 
+        2 buffers ber row: because 3*block_size and 4 blocks per row
+        16 rows in the array: 4x4
+        total = 5*5*2*16 + nb_splits
+
+        case 2:
+        -------
+        5: nb seeks per buffer
+        2: nb buffers per slice
+        4: nb slices
+        total: 5*2*4 + nb_splits
+
+        case 3:
+        -------
+        1: nb seek per buffer
+        2: nb buffers per image
+        total = 2 + nb_splits
+    """
+    expected = [
+        5*5*2*16 + 4*4*4,
+        5*2*4 + 4*4*4,
+        2 + 4*4*4
+    ]
+
+    for case in [0, 1, 2]:
+        print("\n")
+        model = ClusteredCubicModel(*params[case])
+        print(model.get_strategy())
+        print(f'\nModel output for nb seeks: {model.get_nb_seeks()}')
+        print(f'Expected: {expected[case]} seeks.')
+
+
 if __name__ == "__main__":
-    seek_model()
+    test_seek_model()
