@@ -57,23 +57,40 @@ def seek_model():
     """
     TODO: add this feature as a script
     """
-    buffer_size = 5.5 * ONE_GIG
-    shape=(3850, 3025, 3500)
-    chunks_shape=(770, 605, 700)
-    chunk_dims = np.array(shape)/np.array(chunks_shape)
-    chunk_dims = tuple(chunk_dims.reshape(1, -1)[0])
-    print(chunk_dims)
+    
+    cs_list = [
+        (1000, 1000, 1000),
+        (500, 500, 500),  # 10x11x10
+        (100, 100, 100)
+    ]
 
-    params = [shape, 
-        chunks_shape, 
-        chunk_dims, 
-        np.dtype('float16'), 
-        buffer_size]
+    mem_list = [
+        3, 9, 15
+    ]
 
-    model = ClusteredCubicModel(*params)
-    model.print_infos()
-    nb_seeks = model.get_nb_seeks()
-    print(f'nb seeks: {nb_seeks}')
+    for mem_available in mem_list:
+        for chunks_shape in cs_list:
+            print(f'\n---------------------------')
+            print(f'MEM: {mem_available}GB')
+            print(f'CHUNKS SHAPE: {chunks_shape}')
+
+            buffer_size = mem_available * ONE_GIG
+            shape=(3000, 3000, 3000)
+            
+            chunk_dims = np.array(shape)/np.array(chunks_shape)
+            chunk_dims = tuple(chunk_dims.reshape(1, -1)[0])
+            print(chunk_dims)
+
+            params = [shape, 
+                chunks_shape, 
+                chunk_dims, 
+                np.dtype('float16'), 
+                buffer_size]
+
+            model = ClusteredCubicModel(*params)
+            model.print_infos()
+            nb_seeks = model.get_nb_seeks()
+            print(f'nb seeks: {nb_seeks}')
 
 
 def test_seek_model():
