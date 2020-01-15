@@ -1,0 +1,19 @@
+hardware,ref,chunk_type,chunks_shape,opti,scheduler_opti,buffer_size,split_successful,processing_time,results_filepath
+hdd,7,blocks,"(770, 605, 700)",True,False,15000000000,True,3092.3072,57394fe7-f9c2-44a1-8e66-55e7096cc34b.html
+hdd,7,blocks,"(770, 605, 700)",True,False,15000000000,True,3100.6338,24edf32b-3034-4de9-b473-0bb56fcc1200.html
+hdd,7,blocks,"(770, 605, 700)",False,False,3000000000,True,6736.1834,65e8c93b-aafe-4c46-8e49-e2b309140671.html
+hdd,7,blocks,"(770, 605, 700)",True,False,3000000000,True,4274.8352,e7fe67ba-229d-4ae9-be56-b97242392d0c.html
+hdd,7,blocks,"(770, 605, 700)",True,False,9000000000,True,3228.61,1a9b1c4f-0815-4b97-a95b-a8f598a4d3b0.html
+hdd,7,blocks,"(770, 605, 700)",False,False,15000000000,True,6785.8588,451eed9f-fab0-4e6a-9e14-87934bbc8b54.html
+hdd,7,blocks,"(770, 605, 700)",False,False,3000000000,True,6796.249,b70146d4-4a3a-4e11-aed3-9ad34c4d3cac.html
+hdd,7,blocks,"(770, 605, 700)",True,False,15000000000,True,3069.2351,b36635f1-b7d9-4843-aba7-8cdd63365345.html
+hdd,7,blocks,"(770, 605, 700)",False,False,15000000000,True,6671.6529,8aca125f-8963-43b6-8de1-368138109b08.html
+hdd,7,blocks,"(770, 605, 700)",True,False,3000000000,True,4432.554,8c56307e-f9dd-47ef-b85d-ee4dc79d7f6f.html
+hdd,7,blocks,"(770, 605, 700)",True,False,9000000000,True,3228.122,7f56095d-8a7d-4229-9597-02d11883dc03.html
+hdd,7,blocks,"(770, 605, 700)",False,False,9000000000,True,6691.3724,7153e9be-445c-4ab9-84bb-bb95232ca486.html
+hdd,7,blocks,"(770, 605, 700)",False,False,15000000000,True,6700.8203,9f63ed3d-28ec-4e7c-ae79-ebba0c4192d7.html
+hdd,7,blocks,"(770, 605, 700)",True,False,9000000000,True,3318.4729,5442b47a-a182-4752-b78e-836d9c003336.html
+hdd,7,blocks,"(770, 605, 700)",True,False,3000000000,True,4258.9653,4de6f9f3-7c61-4083-a9fd-ff368602d19e.html
+hdd,7,blocks,"(770, 605, 700)",False,False,9000000000,True,6599.2434,ace87ba1-3a12-4a65-9727-eeaeef11654a.html
+hdd,7,blocks,"(770, 605, 700)",False,False,3000000000,True,6736.4549,87db14b7-3138-4da2-9b5b-2a5fb6c41f99.html
+hdd,7,blocks,"(770, 605, 700)",False,False,9000000000,True,6908.9452,aed0646e-2a64-45a3-a123-11ac9ab510e8.html
