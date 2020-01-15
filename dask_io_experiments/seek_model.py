@@ -1,8 +1,9 @@
 from dask_io.utils.array_utils import get_arr_shapes
+import numpy as np
 import math
 
 class ClusteredCubicModel():
-    def __init__(self, shape, chunks_shape, chunk_dims, dtype, buffer_size):
+    def __init__(self, shape, chunks_shape, dtype, buffer_size):
         """ 
         Arguments:
         ---------
@@ -16,6 +17,10 @@ class ClusteredCubicModel():
         """
         self.shape = shape
         self.chunks_shape = chunks_shape
+
+        chunk_dims = np.array(shape)/np.array(chunks_shape)
+        chunk_dims = tuple(chunk_dims.reshape(1, -1)[0])
+
         self.chunk_dims = chunk_dims 
         self.dtype = dtype
         self.buffer_size = buffer_size

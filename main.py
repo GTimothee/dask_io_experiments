@@ -78,14 +78,9 @@ def seek_model():
 
             buffer_size = mem_available * ONE_GIG
             shape=(3000, 3000, 3000)
-            
-            chunk_dims = np.array(shape)/np.array(chunks_shape)
-            chunk_dims = tuple(chunk_dims.reshape(1, -1)[0])
-            print(chunk_dims)
 
             params = [shape, 
                 chunks_shape, 
-                chunk_dims, 
                 np.dtype('float16'), 
                 buffer_size]
 
