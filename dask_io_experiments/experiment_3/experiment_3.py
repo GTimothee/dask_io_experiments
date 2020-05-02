@@ -45,39 +45,33 @@ def split(inputfilepath, I):
     case.clean()
 
 
-def use_temp_directory():
-    tmpdir = tempfile.TemporaryDirectory()
-    os.chdir(tmpdir.name)
-    return tmpdir.name
-
-
 if __name__ == "__main__":
+    
+    # for split
+    buffer_size = 4 * ONE_GIG
+
+    # reconstructed array
+    inputfilepath = './small_array_nochunk.hdf5'
+    inputfileshape = (1,120, 120)
+
+    # for resplit
+    O = (1,40,40)
+    I = (1,60,60)
+
     tmpdir = tempfile.TemporaryDirectory()
     os.chdir(tmpdir.name)
-
-    # split -> prepare case
-    buffer_size = 4 * ONE_GIG
-    inputfilepath = './small_array_nochunk.hdf5'
-    inputfileshape = (1,120,120)
-    R = (1,120,120)
-    I = (1,30,30)
-    O = (1,40,40)
-    B = (1,60,60)
-
     create_test_array_nochunk(inputfilepath, inputfileshape)
-    split(inputfilepath, I)    
-
-    # resplit
+    split(inputfilepath, I)
     case = Merge('./reconstructed.hdf5') # dont care about the name of outfile bec we retrieve without actually merging
     case.merge_hdf5_multiple('./', store=False)
     reconstructed_array = case.get()
     print(reconstructed_array)
-    # reconstructed_array = reconstructed_array.rechunk(1,60,60)  # creation des noeuds de buffer
-    # print(reconstructed_array)
 
-    d_arrays, d_regions = compute_zones(B, O, R, [1])
+    
+    d_arrays, d_regions = compute_zones((1,60,60), (1,40,40), (1,120, 120), [1])
 
     out_files = list() # to keep outfiles open during processing
+
     sources = list()
     targets = list()
     regions = list()
@@ -92,7 +86,8 @@ if __name__ == "__main__":
         dset = out_file.create_dataset('/data', shape=O)
         
         for i, st in enumerate(sliceslistoflist):
-            tmp_array = reconstructed_array[st[0], st[1]]
+            tmp_array = reconstructed_array[st[0], st[1], st[2]]
+            print("shape:", tmp_array.shape)
             reg = d_regions[outfile_index][i]
             tmp_array = tmp_array.rechunk(tmp_array.shape)
             
@@ -100,19 +95,13 @@ if __name__ == "__main__":
             targets.append(dset)
             regions.append(reg)
 
-    dask.config.set({
-        'optimizations': []
-    })
 
     task = da.store(sources, targets, regions=regions, compute=False)
-    
-    # compute / print graph / show results
+
     with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
         with dask.config.set(scheduler='single-threaded'):
             task.compute()
         visualize([prof, rprof, cprof])
-
-    sys.exit()
 
     outfiles = list()
     for fpath in glob.glob("[0-9].hdf5"):  # remove split files from previous tests
@@ -120,4 +109,5 @@ if __name__ == "__main__":
         print(f'Filename: {fpath}')
         inspect_h5py_file(f)
 
-    task.visualize(optimize_graph=False, filename='/tmp/viz.svg')
+
+    task.visualize(optimize_graph=False)
