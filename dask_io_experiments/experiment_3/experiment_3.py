@@ -26,64 +26,6 @@ from dask_io.optimizer.utils.array_utils import inspect_h5py_file
 from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5
 from dask_io.optimizer.cases.resplit_case import compute_zones
 
-
-d_arrays = {
-    0: [(slice(0, 40, None), slice(0, 40, None), slice(None, None, None))],
-    1: [(slice(0, 40, None), slice(40, 80, None), slice(None, None, None))],
-    2: [(slice(0, 40, None), slice(80, 120, None), slice(None, None, None))],
-    3: [(slice(40, 60, None), slice(0, 40, None), slice(None, None, None)),
-        (slice(60, 80, None), slice(0, 40, None), slice(None, None, None))],
-    4: [(slice(40, 60, None), slice(40, 60, None), slice(None, None, None)),
-       (slice(40, 60, None), slice(60, 80, None), slice(None, None, None)),
-       (slice(60, 80, None), slice(40, 80, None), slice(None, None, None))],
-    5: [(slice(40, 60, None), slice(80, 120, None), slice(None, None, None)),
-        (slice(60, 80, None), slice(80, 120, None), slice(None, None, None))],
-    6: [
-        (slice(80, 120, None), slice(0, 40, None), slice(None, None, None))
-    ],
-    7: [
-        (slice(80, 120, None), slice(40, 60, None), slice(None, None, None)),
-        (slice(80, 120, None), slice(60, 80, None), slice(None, None, None))
-    ],
-    8: [(slice(80, 120, None), slice(80, 120, None), slice(None, None, None))]
-}
-
-
-d_regions = {
-    0: [
-        (slice(0, 40, None), slice(0, 40, None), slice(None, None, None))
-    ],
-    1:[
-        (slice(0, 40, None), slice(0, 40, None), slice(None, None, None))
-    ],
-    2: [
-        (slice(0, 40, None), slice(0, 40, None), slice(None, None, None))
-    ],
-    3: [
-        (slice(0, 20, None), slice(0, 40, None), slice(None, None, None)),
-        (slice(20, 40, None), slice(0, 40, None), slice(None, None, None))
-    ],
-    4: [
-        (slice(0, 20, None), slice(0, 20, None), slice(None, None, None)),
-        (slice(0, 20, None),  slice(20, 40, None),  slice(None, None, None)),
-        (slice(20, 40, None), slice(0, 40, None), slice(None, None, None))
-    ],
-    5: [
-        (slice(0, 20, None), slice(0, 40, None), slice(None, None, None)),
-        (slice(20, 40, None), slice(0, 40, None), slice(None, None, None))
-    ],
-    6: [
-        (slice(0, 40, None), slice(0, 40, None), slice(None, None, None))
-    ],
-    7: [
-        (slice(0, 40, None), slice(0, 20, None), slice(None, None, None)),
-        (slice(0, 40, None), slice(20, 40, None), slice(None, None, None))
-    ],
-    8: [
-        (slice(0, 40, None), slice(0, 40, None), slice(None, None, None))
-    ]
-}
-
 def create_test_array_nochunk(file_path, shape):
     """ Create input dask array for the experiment with no physical chunks.
     """
@@ -116,11 +58,12 @@ if __name__ == "__main__":
     # split -> prepare case
     buffer_size = 4 * ONE_GIG
     inputfilepath = './small_array_nochunk.hdf5'
-    inputfileshape = (120,120,1)
-    R = (120,120,1)
-    I = (30,30,1)
-    O = (40,40,1)
-    B = (60,60,1)
+    inputfileshape = (1,120,120)
+    R = (1,120,120)
+    I = (1,30,30)
+    O = (1,40,40)
+    B = (1,60,60)
+
     create_test_array_nochunk(inputfilepath, inputfileshape)
     split(inputfilepath, I)    
 
@@ -129,14 +72,10 @@ if __name__ == "__main__":
     case.merge_hdf5_multiple('./', store=False)
     reconstructed_array = case.get()
     print(reconstructed_array)
-    reconstructed_array = reconstructed_array.rechunk(60,60,1)  # creation des noeuds de buffer
-    print(reconstructed_array)
+    # reconstructed_array = reconstructed_array.rechunk(1,60,60)  # creation des noeuds de buffer
+    # print(reconstructed_array)
 
-
-    for k, v in d_arrays.items():
-        print("\nk", k)
-        for e in v:
-            print(v)
+    d_arrays, d_regions = compute_zones(B, O, R, [1])
 
     out_files = list() # to keep outfiles open during processing
     sources = list()
@@ -161,6 +100,10 @@ if __name__ == "__main__":
             targets.append(dset)
             regions.append(reg)
 
+    dask.config.set({
+        'optimizations': []
+    })
+
     task = da.store(sources, targets, regions=regions, compute=False)
     
     # compute / print graph / show results
@@ -168,6 +111,8 @@ if __name__ == "__main__":
         with dask.config.set(scheduler='single-threaded'):
             task.compute()
         visualize([prof, rprof, cprof])
+
+    sys.exit()
 
     outfiles = list()
     for fpath in glob.glob("[0-9].hdf5"):  # remove split files from previous tests
