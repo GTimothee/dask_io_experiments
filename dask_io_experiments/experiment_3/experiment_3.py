@@ -118,30 +118,39 @@ if __name__ == "__main__":
     inputfilepath = './small_array_nochunk.hdf5'
     inputfileshape = (1,120, 120)
     R =(1,120, 120)
-    volumestokeep = [1]
 
     cases = [
         {  # case 0
             "O":(1,40,40),
             "I":(1,60,60),
-            "B":(1,60,60)
+            "B":(1,60,60),
+            "volumestokeep": [1]
         },
         {  # case 1
             "O":(1,40,40),
             "I":(1,30,30),
-            "B":(1,60,60)
+            "B":(1,60,60),
+            "volumestokeep": [1]
         },
         {  # case 2
             "O":(1,40,40),
             "I":(1,30,30),
-            "B":(1,20,30)
+            "B":(1,20,60),
+            "volumestokeep": [1]
+        },
+        {  # case 3
+            "O":(1,40,40),
+            "I":(1,60,60),
+            "B":(1,60,60),
+            "volumestokeep": [1,2,3]
         }
     ]
 
     outputimgdir = '/home/user/Desktop/'
 
-    for case_index, exp in enumerate(cases[1:2]):
+    for case_index, exp in enumerate(cases[2:3]):
         O, I, B  = exp["O"], exp["I"], exp["B"]  # for resplit
+        volumestokeep = exp["volumestokeep"]
 
         # split input data into input files
         tmpdir = tempfile.TemporaryDirectory()
@@ -171,6 +180,6 @@ if __name__ == "__main__":
         with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
             with dask.config.set(scheduler='single-threaded'):
                 task.compute()
-            # visualize([prof, rprof, cprof])
+            visualize([prof, rprof, cprof])
         # # check_outputs()
         
