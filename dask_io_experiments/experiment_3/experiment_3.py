@@ -72,38 +72,11 @@ def check_outputs():
         print("equal:", da.allclose(array_stored, arr_expected).compute())
         print("stored:", array_stored[slice(0, 1, None),slice(0, 1, None),slice(0,10,None)].compute())
         print("expected", arr_expected[slice(0, 1, None),slice(0, 1, None),slice(0,10,None)].compute())
-        
-    task.visualize(optimize_graph=False)
 
 
-if __name__ == "__main__":
-    
-    # for split
-    buffer_size = 4 * ONE_GIG
-
-    # reconstructed array
-    inputfilepath = './small_array_nochunk.hdf5'
-    inputfileshape = (1,120, 120)
-
-    # for resplit
-    O = (1,40,40)
-    I = (1,30,30)
-
-    # split input data into input files
-    tmpdir = tempfile.TemporaryDirectory()
-    os.chdir(tmpdir.name)
-    create_test_array_nochunk(inputfilepath, inputfileshape)
-    split(inputfilepath, I)
-
-    # create reconstructed array from input files
-    case = Merge('./reconstructed.hdf5') # dont care about the name of outfile bec we retrieve without actually merging
-    case.merge_hdf5_multiple('./', store=False)
-    reconstructed_array = case.get()
-    print(reconstructed_array)
-    reconstructed_array = reconstructed_array.rechunk((1,60,60))
-
+def apply_store(B, O, R, volumestokeep, reconstructed_array, outputimgdir, case_index):
     # creations of data for dask store function
-    d_arrays, d_regions = compute_zones((1,60,60), (1,40,40), (1,120, 120), [1])
+    d_arrays, d_regions = compute_zones(B, O, R, volumestokeep)
     out_files = list() # to keep outfiles open during processing
     sources = list()
     targets = list()
@@ -131,14 +104,73 @@ if __name__ == "__main__":
 
     # storage: creation of task graph
     task = da.store(sources, targets, regions=regions, compute=False)
+    filename = os.path.join(outputimgdir, 'after_store' + str(case_index) + '.png')
+    task.visualize(optimize_graph=False, filename=filename)
+    return task
 
-    enable_keep()
 
-    # computation
-    with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
-        with dask.config.set(scheduler='single-threaded'):
-            task.compute()
-        # visualize([prof, rprof, cprof])
-
-    check_outputs()
+if __name__ == "__main__":
     
+    # for split
+    buffer_size = 4 * ONE_GIG
+
+    # reconstructed array
+    inputfilepath = './small_array_nochunk.hdf5'
+    inputfileshape = (1,120, 120)
+    R =(1,120, 120)
+    volumestokeep = [1]
+
+    cases = [
+        {  # case 0
+            "O":(1,40,40),
+            "I":(1,60,60),
+            "B":(1,60,60)
+        },
+        {  # case 1
+            "O":(1,40,40),
+            "I":(1,30,30),
+            "B":(1,60,60)
+        },
+        {  # case 2
+            "O":(1,40,40),
+            "I":(1,30,30),
+            "B":(1,20,30)
+        }
+    ]
+
+    outputimgdir = '/home/user/Desktop/'
+
+    for case_index, exp in enumerate(cases[1:2]):
+        O, I, B  = exp["O"], exp["I"], exp["B"]  # for resplit
+
+        # split input data into input files
+        tmpdir = tempfile.TemporaryDirectory()
+        os.chdir(tmpdir.name)
+        create_test_array_nochunk(inputfilepath, inputfileshape)
+        split(inputfilepath, I)
+
+        # create reconstructed array from input files
+        case = Merge('./reconstructed.hdf5') # dont care about the name of outfile bec we retrieve without actually merging
+        case.merge_hdf5_multiple('./', store=False)
+        reconstructed_array = case.get()
+        print("Before rechunk:", reconstructed_array)
+        print("Rechunking to buffer shape...")
+        reconstructed_array = reconstructed_array.rechunk(B)
+        print("After rechunk:", reconstructed_array)
+        filename = os.path.join(outputimgdir, 'rechunkedasbuffer' + str(case_index) + '.png')
+        reconstructed_array.visualize(optimize_graph=False, filename=filename)
+
+        enable_keep()
+        # with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
+        #     with dask.config.set(scheduler='single-threaded'):
+        #         reconstructed_array.compute()  # to apply keep algorithm
+
+        task = apply_store(B, O, R, volumestokeep, reconstructed_array, outputimgdir, case_index)
+
+        # computation
+        with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
+            with dask.config.set(scheduler='single-threaded'):
+                task.compute()
+            # visualize([prof, rprof, cprof])
+        # # check_outputs()
+        
