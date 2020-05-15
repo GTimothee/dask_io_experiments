@@ -158,6 +158,8 @@ if __name__ == "__main__":
             print("time to merge: ", t2, "seconds")
             
             clean_directory(datadir, merged_filepath)
+        
+        os.remove(filepath)
 
     save_to_csv(args.outdir, rows)
     print(f'Done.')
