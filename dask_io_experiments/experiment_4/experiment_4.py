@@ -2,29 +2,33 @@
 """
 
 import numpy as np
+import json
 import argparse
 import sys, os, time, glob
-sys.path.insert(0, '.')
 
-from dask_io_experiments.custom_setup import setup_all
-setup_all(customdask=False, monitor=False)
 
-from dask_io.optimizer.utils.utils import flush_cache, create_csv_file
-from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5
-from dask_io.optimizer.cases.case_config import Split, Merge
+def load_config(config_filepath):
+    with open(config_filepath) as f:
+        return json.load(f)
+
+
+def custom_imports(paths):
+    def isempty(s):
+        if s == "":
+            return True 
+        return False 
+
+    for k in ["dask_io_path", "custom_dask_path"]:
+        path = paths[k]
+        if not isempty(path):
+            sys.path.insert(0, path)
 
 
 def get_arguments():
     parser = argparse.ArgumentParser(description="In this experiment we test vanilla dask to split and merge a multidimensional array stored in an hdf5 file.")
-    parser.add_argument('datadir_ssd', action='store', 
+    parser.add_argument('config_filepath', action='store', 
         type=str, 
-        help='Directory to store and manipulate data files.')
-    parser.add_argument('datadir_hdd', action='store', 
-        type=str, 
-        help='Directory to store and manipulate data files.')
-    parser.add_argument('outdir', action='store', 
-        type=str, 
-        help='Directory to store the csv output file.')
+        help='Path to configuration file containing paths of third parties libraries, projects, data directories, etc. See README for more information.')
     parser.add_argument('-t', '--testmode', action='store_true', default=False,
         dest='testmode',
         help='Test if setup working.')
@@ -143,8 +147,15 @@ if __name__ == "__main__":
         print("Running experiment.")
         shapes = ["good_cs", "bad_cs"]
 
+    paths = load_config(args.config_filepath)
+    custom_imports(paths)
+
+    from dask_io.optimizer.utils.utils import flush_cache, create_csv_file
+    from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5
+    from dask_io.optimizer.cases.case_config import Split, Merge
+
     rows = list()
-    for datadir, dirtype in zip([args.datadir_ssd, args.datadir_hdd], ['SSD', 'HDD']):
+    for datadir, dirtype in zip([paths['ssd_path'], paths['hdd_path']], ['SSD', 'HDD']):
         filepath = create_test_array(datadir, testmode)
 
         for cs in shapes:
@@ -161,5 +172,5 @@ if __name__ == "__main__":
         
         os.remove(filepath)
 
-    save_to_csv(args.outdir, rows)
+    save_to_csv(paths['outdir'], rows)
     print(f'Done.')
