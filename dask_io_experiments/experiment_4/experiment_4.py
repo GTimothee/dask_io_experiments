@@ -18,9 +18,8 @@ def custom_imports(paths):
             return True 
         return False 
 
-    for k in ["dask_io_path", "custom_dask_path"]:
-        path = paths[k]
-        if not isempty(path):
+    for k, path in paths.items():
+        if "lib_" in k and not isempty(path):
             sys.path.insert(0, path)
 
 
