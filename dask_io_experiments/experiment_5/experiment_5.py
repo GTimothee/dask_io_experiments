@@ -45,6 +45,7 @@ def get_arguments():
 def create_test_array(filepath, shape):
     """ Create input dask array for the experiment with no physical chunks.
     """
+    disable_clustering()
     print("Creating input array for the experiment...")
     if not os.path.isfile(filepath):
         arr = create_random_dask_array(shape, distrib='normal', dtype=np.float16)
@@ -86,7 +87,11 @@ def apply_store(B, O, R, volumestokeep, reconstructed_array):
         sliceslistoflist = d_arrays[outfile_index]
         
         # create file
-        out_file = h5py.File(os.path.join(outdir_path, str(outfile_index) + '.hdf5'), 'w')
+        outfiles_partition = get_blocks_shape(R, O)
+        _3d_pos = numeric_to_3d_pos(outfile_index, outfiles_partition, order='C')
+        i, j, k = _3d_pos
+        out_filename = f'{i}_{j}_{k}.hdf5'
+        out_file = h5py.File(os.path.join(outdir_path, out_filename), 'w')
         out_files.append(out_file)
         
         # create dset
@@ -212,12 +217,13 @@ if __name__ == "__main__":
     import dask.array as da
     import dask_io
     from dask.diagnostics import ResourceProfiler, Profiler, CacheProfiler, visualize
-    from dask_io.optimizer.utils.utils import flush_cache, create_csv_file
+    from dask_io.optimizer.utils.utils import flush_cache, create_csv_file, numeric_to_3d_pos
     from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5
     from dask_io.optimizer.cases.case_validation import check_split_output_hdf5
     from dask_io.optimizer.configure import enable_clustering, disable_clustering
     from dask_io.optimizer.cases.case_config import Split, Merge
     from dask_io.optimizer.cases.resplit_case import compute_zones
+    from dask_io.optimizer.cases.resplit_utils import get_blocks_shape
 
     import logging
     import logging.config

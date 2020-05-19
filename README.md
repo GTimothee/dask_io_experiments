@@ -2,10 +2,11 @@
 Experiments and benchmarks for the dask_io module.
 
 Description: 
-- experiment 1: Benchmark of clustered implementation (split only)
-- experiment 2: Evaluation of read/write time from hdf5 file to npy/hdf5 file(s)
-- experiment 3: Test of resplit implementation
-- experiment 4: Vanilla dask clean benchmark on split and merge tasks 
+- experiment 1: [working] Benchmark of clustered implementation (split only)
+- experiment 2: [to_refactor] Evaluation of read/write time from hdf5 file to npy/hdf5 file(s)
+- experiment 3: [to_refactor] Test of resplit implementation
+- experiment 4: [working] Vanilla dask clean benchmark on split and merge tasks
+- experiment 5: [working] This experiment is described as experiment 3 in Guédon et al. It is composed of three parts and tests dask_io. 
 
 ## Setup
 Fill in the config file at dask_io_experiments/config.json
@@ -32,5 +33,13 @@ In any experiment, add "-t" to run it in test mode first and see if everything i
 Use "--help" or "-h" to see the command line arguments.
 
 Experiment 4:
+
 ``` python dask_io_experiments/experiment_4/experiment_4.py --help ```
+
 ``` python dask_io_experiments/experiment_4/experiment_4.py -t "dask_io_experiments/pathsconfig.json" ```
+
+Experiment 5:
+
+``` python dask_io_experiments/experiment_4/experiment_5.py --help ```
+
+``` python dask_io_experiments/experiment_5/experiment_5.py -t "dask_io_experiments/pathsconfig.json" -n 1 ```
