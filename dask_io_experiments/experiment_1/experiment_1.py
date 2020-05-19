@@ -44,7 +44,7 @@ def run_to_hdf5(arr, params, uid):
         finally:
             _monitor.stop()
 
-        if t:
+        if t != None:
             diagnostics = os.path.join(paths["outdir"], str(uid) + '.html')
             visualize([prof, rprof, cprof], diagnostics)   
         else:

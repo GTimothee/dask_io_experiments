@@ -16,6 +16,7 @@ def custom_imports(paths):
     for k, path in paths.items():
         if "lib_" in k and not isempty(path):
             sys.path.insert(0, path)
+    sys.path.insert(0, './')
 
 
 def clean_directory(datadir, merged_filepath):
@@ -43,18 +44,22 @@ def get_arguments():
     parser.add_argument('-n', '--nb_repetitions', action='store', 
         type=int, 
         help='Number of repetitions for each case of the experiment. Default is 3.',
+        dest='nb_repetitions',
         default=3)
     parser.add_argument('--nthreads_opti', action='store', 
         type=int, 
         help='Number of threads for use with dask local scheduler for optimized run. Default is 1.',
+        dest='nthreads_opti',
         default=1)
     parser.add_argument('--nthreads_non_opti', action='store', 
         type=int, 
         help='Number of threads for use with dask local scheduler for NON optimized run. Default is None => chosen by dask.',
+        dest='nthreads_non_opti',
         default=None)
     parser.add_argument('-c', '--cuboids', action='store', 
         type=list, 
         help='Cuboids to experiment with. Experiment processes all cuboids by default.',
+        dest='cuboids',
         default=None)
     parser.add_argument('-t', '--testmode', action='store_true',
         dest='testmode',
