@@ -27,18 +27,31 @@ def write_to_outfile(involume, outvolume, indset, outfiles_partition, outdir_pat
 
     # find subarray crossing both files
     subarr = get_overlap_subarray(involume, outvolume)
+    lowcorner, upcorner = subarr
 
     # write subarray from infile to outfile and close
-    lowcorner, upcorner = subarr
     slices = [(lowcorner[0], upcorner[0]), (lowcorner[1], upcorner[1]), (lowcorner[2], upcorner[2])]
-    offset = involume.get_corners()[0]  # lower corner of input file
+
+    offset_in = involume.get_corners()[0]  # lower corner of input file
+    offset_out = outvolume.get_corners()[0]
+
     slices_in_infile = [
-        (lowcorner[0]-offset[0], upcorner[0]-offset[0]), 
-        (lowcorner[1]-offset[1], upcorner[1]-offset[1]), 
-        (lowcorner[2]-offset[2], upcorner[2]-offset[2])]
+        (lowcorner[0]-offset_in[0], upcorner[0]-offset_in[0]), 
+        (lowcorner[1]-offset_in[1], upcorner[1]-offset_in[1]), 
+        (lowcorner[2]-offset_in[2], upcorner[2]-offset_in[2])]
+    
+    
+    slices_in_outfile = [
+        (lowcorner[0]-offset_out[0], upcorner[0]-offset_out[0]), 
+        (lowcorner[1]-offset_out[1], upcorner[1]-offset_out[1]), 
+        (lowcorner[2]-offset_out[2], upcorner[2]-offset_out[2])]
+    ]
+
     s = slices_in_infile
+    s2 = slices_in_outfile
+
     data = indset[s[0][0]:s[0][1],s[1][0]:s[1][1],s[2][0]:s[2][1]]
-    outdset[slices[0][0]:slices[0][1],slices[1][0]:slices[1][1],slices[2][0]:slices[2][1]] = data
+    outdset[s2[0][0]:s2[0][1],s2[1][0]:s2[1][1],s2[2][0]:s2[2][1]] = data
     f.close()
 
 
