@@ -40,12 +40,10 @@ def write_to_outfile(involume, outvolume, indset, outfiles_partition, outdir_pat
         (lowcorner[1]-offset_in[1], upcorner[1]-offset_in[1]), 
         (lowcorner[2]-offset_in[2], upcorner[2]-offset_in[2])]
     
-    
     slices_in_outfile = [
         (lowcorner[0]-offset_out[0], upcorner[0]-offset_out[0]), 
         (lowcorner[1]-offset_out[1], upcorner[1]-offset_out[1]), 
         (lowcorner[2]-offset_out[2], upcorner[2]-offset_out[2])]
-    ]
 
     s = slices_in_infile
     s2 = slices_in_outfile

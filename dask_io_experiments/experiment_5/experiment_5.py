@@ -240,13 +240,23 @@ def get_cases_to_run(args, cases):
         return all_cases_names
 
 
-def clean_directory(dir):
+def clean_directory(dirpath):
     """ Remove intermediary files from split/rechunk.
     """
     workdir = os.getcwd()
-    os.chdir(dir)
-    for filepath in glob.glob("[0-9]*_[0-9]*_[0-9]*.hdf5"):
-        os.remove(filepath)
+    os.chdir(dirpath)
+    for filename in glob.glob("[0-9]*_[0-9]*_[0-9]*.hdf5"):
+        os.remove(filename)
+    os.chdir(workdir)
+
+
+def inspect_dir(dirpath):
+    print(f'Inspecting {dirpath}...')
+    workdir = os.getcwd()
+    os.chdir(dirpath)
+    for filename in glob.glob("[0-9]*_[0-9]*_[0-9]*.hdf5"):
+        with h5py.File(os.path.join(dirpath, filename), 'r') as f:
+            inspect_h5py_file(f)
     os.chdir(workdir)
 
 
@@ -292,6 +302,7 @@ if __name__ == "__main__":
     from dask.diagnostics import ResourceProfiler, Profiler, CacheProfiler, visualize
     from dask_io.optimizer.utils.utils import flush_cache, create_csv_file, numeric_to_3d_pos
     from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5, get_dask_array_from_hdf5
+    from dask_io.optimizer.utils.array_utils import inspect_h5py_file
     from dask_io.optimizer.cases.case_validation import check_split_output_hdf5
     from dask_io.optimizer.configure import enable_clustering, disable_clustering
     from dask_io.optimizer.cases.case_config import Split, Merge
@@ -342,6 +353,7 @@ if __name__ == "__main__":
                     for model in models:
                         print('Running model :', model)
                         rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep)
+                        inspect_dir(outdir_path)
                         clean_directory(outdir_path)
 
                     clean_directory(indir_path)
