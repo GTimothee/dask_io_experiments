@@ -1,6 +1,10 @@
 import random, sys, os, argparse, json, h5py, glob
 import shutil, time
 import numpy as np
+sys.path.insert(0, './')
+
+from dask_io_experiments.experiment_5.plain_python_model import rechunk_plain_python
+
 ONE_GIG = 1000000
 
 def get_arguments():
@@ -143,22 +147,16 @@ def load_input_files(input_dirpath, dataset_key='/data'):
     workdir = os.getcwd()
     os.chdir(input_dirpath)
     data = dict()
-    for infilepath in glob.glob("[0-9]*_[0-9]*_[0-9]*.hdf5"):
-        pos = infilepath.split('_')
+    for filename in glob.glob("[0-9]*_[0-9]*_[0-9]*.hdf5"):
+        pos = filename.split('_')
         pos[-1] = pos[-1].split('.')[0]
         pos = tuple(list(map(lambda s: int(s), pos)))
-        arr = get_dask_array_from_hdf5(infilepath, 
+        arr = get_dask_array_from_hdf5(filename, 
                                        dataset_key, 
                                        logic_cs="dataset_shape")
         data[pos] = arr
     os.chdir(workdir)
     return data
-
-
-def rechunk_plain_python(indir_path):
-    """ Naive rechunk implementation in plain python
-    """
-    pass 
 
 
 def rechunk_vanilla_dask(indir_path, outdir_path, nthreads):
@@ -207,7 +205,7 @@ def rechunk_vanilla_dask(indir_path, outdir_path, nthreads):
         f.close()
 
 
-def rechunk(indir_path, outdir_path, model, B, O, R, volumestokeep):
+def rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep):
     """ Rechunk data chunks stored into datadir using a given model.
     """
     if model == "dask_vanilla_1thread":
@@ -218,7 +216,7 @@ def rechunk(indir_path, outdir_path, model, B, O, R, volumestokeep):
         t = rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep)
         print("Processing time for the keep model: ", t, " seconds.")
     else:  # use plain python 
-        t = rechunk_plain_python(indir_path)
+        t = rechunk_plain_python(indir_path, outdir_path, B, O, I, R)
 
 
 def get_cases_to_run(args, cases):
@@ -266,7 +264,6 @@ def custom_imports(paths):
     for k, path in paths.items():
         if "lib_" in k and not isempty(path):
             sys.path.insert(0, path)
-    sys.path.insert(0, './')
 
 
 if __name__ == "__main__":
@@ -276,6 +273,12 @@ if __name__ == "__main__":
         It allows to create only once the input array which is very time consumming to generate.
         We did not create the file at the beginning of the "datadir for loop" due to the special case of the "test" case.
         Test case is not supposed to be run with the other cases, this should be ensured by the cmd line arguments.
+
+    Other assumptions: 
+    ------------------
+    - we assume every hdf5 file contains only one dataset containing a chunk
+    - each dataset is accessible with the key: "/data" (we load and store datasets with key "/data"), see h5py for details about datasets
+    - we only work with float16 datatypes
     """
     # TODO: use scheduler constraint and unithreading for split/merge
     # TODO: in split modify buffer size dynamically either with buffer = input file or by argument
@@ -338,7 +341,7 @@ if __name__ == "__main__":
                     random.shuffle(models)
                     for model in models:
                         print('Running model :', model)
-                        rechunk(indir_path, outdir_path, model, B, O, R, volumestokeep)
+                        rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep)
                         clean_directory(outdir_path)
 
                     clean_directory(indir_path)
