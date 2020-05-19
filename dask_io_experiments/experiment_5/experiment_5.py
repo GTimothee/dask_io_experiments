@@ -137,7 +137,7 @@ def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep):
     return t
 
 
-def load_input_files(input_dirpath):
+def load_input_files(input_dirpath, dataset_key='/data'):
     """ Load input files created from the split preprocessing.
     """
     workdir = os.getcwd()
@@ -161,7 +161,7 @@ def rechunk_plain_python(indir_path):
     pass 
 
 
-def rechunk_vanilla_dask(indir_path, outdir_path):
+def rechunk_vanilla_dask(indir_path, outdir_path, nthreads):
     """ Rechunk using vanilla dask
     """
     in_arrays = load_input_files(indir_path)
@@ -170,6 +170,9 @@ def rechunk_vanilla_dask(indir_path, outdir_path):
     case.merge_hdf5_multiple(indir_path, store=False)
     reconstructed_array = case.get()
 
+    out_files = list() # to keep outfiles open during processing
+    sources = list()
+    targets = list()
     outfiles_partition = get_blocks_shape(R, O)
     for i in range(outfiles_partition[0]):
         for j in range(outfiles_partition[1]):
@@ -178,8 +181,8 @@ def rechunk_vanilla_dask(indir_path, outdir_path):
                 out_file = h5py.File(os.path.join(outdir_path, out_filename), 'w')
                 dset = out_file.create_dataset('/data', shape=O)
 
-                tmp_array = reconstructed_array[i*O[i]: (i+1)*O[i], j*O[j]: (j+1)*O[j], k*O[k]: (k+1)*O[k]]
-                print(f'{i*O[i]}: {(i+1)*O[i]}, {j*O[j]}: {(j+1)*O[j]}, {k*O[k]}: {(k+1)*O[k]}')
+                tmp_array = reconstructed_array[i*O[0]: (i+1)*O[0], j*O[1]: (j+1)*O[1], k*O[2]: (k+1)*O[2]]
+                print(f'{i*O[0]}: {(i+1)*O[0]}, {j*O[1]}: {(j+1)*O[1]}, {k*O[2]}: {(k+1)*O[2]}')
 
                 out_files.append(out_file)
                 sources.append(tmp_array)
@@ -188,7 +191,9 @@ def rechunk_vanilla_dask(indir_path, outdir_path):
     rechunk_task = da.store(sources, targets, compute=False)
 
     with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
-        with dask.config.set(scheduler='single-threaded'):
+        scheduler = 'single-threaded' if nthreads == 1 else 'threads'
+
+        with dask.config.set(scheduler=scheduler):
             try:
                 t = time.time()
                 rechunk_task.compute()
@@ -206,14 +211,14 @@ def rechunk(indir_path, outdir_path, model, B, O, R, volumestokeep):
     """ Rechunk data chunks stored into datadir using a given model.
     """
     if model == "dask_vanilla_1thread":
-        pass 
+        t = rechunk_vanilla_dask(indir_path, outdir_path, 1)
     elif model == "dask_vanilla_nthreads":
-        pass 
+        t = rechunk_vanilla_dask(indir_path, outdir_path, None)
     elif model == "keep":
         t = rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep)
         print("Processing time for the keep model: ", t, " seconds.")
     else:  # use plain python 
-        pass
+        t = rechunk_plain_python(indir_path)
 
 
 def get_cases_to_run(args, cases):
@@ -299,7 +304,7 @@ if __name__ == "__main__":
 
     cases = load_config(args.config_cases)
     cases_to_run = get_cases_to_run(args, cases)
-    models = ["keep"] # ["dask_vanilla_1thread", "dask_vanilla_nthreads", "plain_python", "keep"]
+    models = ["plain_python"] # ["dask_vanilla_1thread", "dask_vanilla_nthreads", "plain_python", "keep"]
     for datadir in [paths["hdd_path"], paths["ssd_path"]]:
         print("Working on ", datadir)
 
