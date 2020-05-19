@@ -137,6 +137,71 @@ def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep):
     return t
 
 
+def load_input_files(input_dirpath):
+    """ Load input files created from the split preprocessing.
+    """
+    workdir = os.getcwd()
+    os.chdir(input_dirpath)
+    data = dict()
+    for infilepath in glob.glob("[0-9]*_[0-9]*_[0-9]*.hdf5"):
+        pos = infilepath.split('_')
+        pos[-1] = pos[-1].split('.')[0]
+        pos = tuple(list(map(lambda s: int(s), pos)))
+        arr = get_dask_array_from_hdf5(infilepath, 
+                                       dataset_key, 
+                                       logic_cs="dataset_shape")
+        data[pos] = arr
+    os.chdir(workdir)
+    return data
+
+
+def rechunk_plain_python(indir_path):
+    """ Naive rechunk implementation in plain python
+    """
+    pass 
+
+
+def rechunk_vanilla_dask(indir_path, outdir_path):
+    """ Rechunk using vanilla dask
+    """
+    in_arrays = load_input_files(indir_path)
+
+    case = Merge('samplename')
+    case.merge_hdf5_multiple(indir_path, store=False)
+    reconstructed_array = case.get()
+
+    outfiles_partition = get_blocks_shape(R, O)
+    for i in range(outfiles_partition[0]):
+        for j in range(outfiles_partition[1]):
+            for k in range(outfiles_partition[2]):
+                out_filename = f'{i}_{j}_{k}.hdf5'
+                out_file = h5py.File(os.path.join(outdir_path, out_filename), 'w')
+                dset = out_file.create_dataset('/data', shape=O)
+
+                tmp_array = reconstructed_array[i*O[i]: (i+1)*O[i], j*O[j]: (j+1)*O[j], k*O[k]: (k+1)*O[k]]
+                print(f'{i*O[i]}: {(i+1)*O[i]}, {j*O[j]}: {(j+1)*O[j]}, {k*O[k]}: {(k+1)*O[k]}')
+
+                out_files.append(out_file)
+                sources.append(tmp_array)
+                targets.append(dset)
+
+    rechunk_task = da.store(sources, targets, compute=False)
+
+    with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
+        with dask.config.set(scheduler='single-threaded'):
+            try:
+                t = time.time()
+                rechunk_task.compute()
+                t = time.time() - t
+                visualize([prof, rprof, cprof])
+            except Exception as e: 
+                print(e, "\nSomething went wrong during graph execution.")
+                t = None
+
+    for f in out_files:
+        f.close()
+
+
 def rechunk(indir_path, outdir_path, model, B, O, R, volumestokeep):
     """ Rechunk data chunks stored into datadir using a given model.
     """
@@ -218,7 +283,7 @@ if __name__ == "__main__":
     import dask_io
     from dask.diagnostics import ResourceProfiler, Profiler, CacheProfiler, visualize
     from dask_io.optimizer.utils.utils import flush_cache, create_csv_file, numeric_to_3d_pos
-    from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5
+    from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5, get_dask_array_from_hdf5
     from dask_io.optimizer.cases.case_validation import check_split_output_hdf5
     from dask_io.optimizer.configure import enable_clustering, disable_clustering
     from dask_io.optimizer.cases.case_config import Split, Merge
