@@ -219,6 +219,13 @@ if __name__ == "__main__":
     from dask_io.optimizer.cases.case_config import Split, Merge
     from dask_io.optimizer.cases.resplit_case import compute_zones
 
+    import logging
+    import logging.config
+    logging.config.dictConfig({
+        'version': 1,
+        'disable_existing_loggers': True,
+    })
+
     cases = load_config(args.config_cases)
     cases_to_run = get_cases_to_run(args, cases)
     models = ["keep"] # ["dask_vanilla_1thread", "dask_vanilla_nthreads", "plain_python", "keep"]
