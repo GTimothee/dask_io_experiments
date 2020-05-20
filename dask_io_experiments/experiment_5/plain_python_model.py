@@ -1,5 +1,6 @@
 import os, glob, h5py
 import numpy as np
+import time
 
 def get_input_files(input_dirpath):
     workdir = os.getcwd()
@@ -28,11 +29,11 @@ def write_to_outfile(involume, outvolume, indset, outfiles_partition, outdir_pat
     # if no datasets, create one
     print("KEYS", list(f.keys()))
     if not "/data" in f.keys():
-        print('[debug] No dataset, creating dataset')
+        # print('[debug] No dataset, creating dataset')
         null_arr = np.zeros(O)
         outdset = f.create_dataset("/data", O, data=null_arr)  # initialize an empty dataset
     else:
-        print('[debug] Dataset exists')
+        # print('[debug] Dataset exists')
         outdset = f["/data"]
 
     # find subarray crossing both files
@@ -120,9 +121,11 @@ def rechunk_plain_python(indir_path, outdir_path, B, O, I, R):
     outfiles_partition = get_blocks_shape(R, O)
     outfiles_volumes = get_named_volumes(outfiles_partition, O)
 
+    t = time.time()
     for infilepath in get_input_files(indir_path):
         data = get_dataset(infilepath, '/data')
         involume = find_associated_volume(infilepath, infiles_volumes, infiles_partition)
         for outvolume in outfiles_volumes.values():
             if hypercubes_overlap(involume, outvolume):
                 write_to_outfile(involume, outvolume, data, outfiles_partition, outdir_path, O)
+    return time.time() - t

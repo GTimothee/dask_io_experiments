@@ -1,11 +1,22 @@
 import random, sys, os, argparse, json, h5py, glob
 import shutil, time
+from time import gmtime, strftime
 import numpy as np
 sys.path.insert(0, './')
 
 from dask_io_experiments.experiment_5.plain_python_model import rechunk_plain_python
 
 ONE_GIG = 1000000
+
+
+def write_csv(rows, columns, outdir):
+    csv_path = os.path.join(outdir, 'exp1_' + strftime("%Y-%m-%d %H:%M:%S", gmtime()) + '_out.csv')
+    print(f'Creating csv file at {csv_path}.')
+    csv_out, writer = create_csv_file(csv_path, columns, delimiter=',', mode='w+')
+    for row in rows: 
+      writer.writerow(row)
+    csv_out.close()
+
 
 def get_arguments():
     """ Get arguments from console command.
@@ -92,7 +103,7 @@ def apply_store(B, O, R, volumestokeep, reconstructed_array):
         
         # create file
         outfiles_partition = get_blocks_shape(R, O)
-        _3d_pos = numeric_to_3d_pos(outfile_index, outfiles_partition, order='C')
+        _3d_pos = numeric_to_3d_pos(outfile_index, outfiles_partition, order='F')
         i, j, k = _3d_pos
         out_filename = f'{i}_{j}_{k}.hdf5'
         out_file = h5py.File(os.path.join(outdir_path, out_filename), 'w')
@@ -131,7 +142,7 @@ def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep):
                 t = time.time()
                 rechunk_task.compute()
                 t = time.time() - t
-                visualize([prof, rprof, cprof])
+                # visualize([prof, rprof, cprof])
             except Exception as e: 
                 print(e, "\nSomething went wrong during graph execution.")
                 t = None
@@ -204,19 +215,20 @@ def rechunk_vanilla_dask(indir_path, outdir_path, nthreads):
     for f in out_files:
         f.close()
 
+    return t 
+
 
 def rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep):
     """ Rechunk data chunks stored into datadir using a given model.
     """
     if model == "dask_vanilla_1thread":
-        t = rechunk_vanilla_dask(indir_path, outdir_path, 1)
+        return rechunk_vanilla_dask(indir_path, outdir_path, 1)
     elif model == "dask_vanilla_nthreads":
-        t = rechunk_vanilla_dask(indir_path, outdir_path, None)
+        return rechunk_vanilla_dask(indir_path, outdir_path, None)
     elif model == "keep":
-        t = rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep)
-        print("Processing time for the keep model: ", t, " seconds.")
+        return rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep)
     else:  # use plain python 
-        t = rechunk_plain_python(indir_path, outdir_path, B, O, I, R)
+        return rechunk_plain_python(indir_path, outdir_path, B, O, I, R)
 
 
 def get_cases_to_run(args, cases):
@@ -283,6 +295,7 @@ def verify_results(outdir_path, original_array_path, R, O):
     from dask_io.optimizer.cases.resplit_utils import get_blocks_shape
     outfiles_partition = get_blocks_shape(R, O)
 
+    all_true = True
     with h5py.File(original_array_path, 'r') as f:
         orig_arr = f["/data"]
 
@@ -302,6 +315,8 @@ def verify_results(outdir_path, original_array_path, R, O):
                             print(f"Good output file {outfilename}")
                         except:
                             print(f"Error: bad rechunking {outfilename}")
+                            all_true = False  # do not return here to see all failures
+    return all_true
 
 
 if __name__ == "__main__":
@@ -347,8 +362,9 @@ if __name__ == "__main__":
 
     cases = load_config(args.config_cases)
     cases_to_run = get_cases_to_run(args, cases)
-    models = ["plain_python"] # ["dask_vanilla_1thread", "dask_vanilla_nthreads", "plain_python", "keep"]
-    for datadir in [paths["hdd_path"]]: # , paths["ssd_path"]]:
+    models = ["dask_vanilla_1thread", "dask_vanilla_nthreads", "plain_python", "keep"]
+    results = list()
+    for datadir, hardware in zip([paths["hdd_path"], paths["ssd_path"]], ['ssd', 'hdd']):
         print("Working on ", datadir)
 
         # create 2 directories in datadir
@@ -376,17 +392,40 @@ if __name__ == "__main__":
                     inputfilepath = os.path.join(datadir, "original_array.hdf5")
                     create_test_array(inputfilepath, R)  # if not already created
                     split(inputfilepath, I, indir_path)  # initially split the input array
-                    # inspect_dir(indir_path)
 
-                    flush_cache()
                     random.shuffle(models)
                     for model in models:
+                        flush_cache()
                         print('Running model :', model)
-                        rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep)
-                        # inspect_dir(outdir_path)
-                        verify_results(outdir_path, inputfilepath, R, O)
+                        t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep)
+                        print("Processing time: ", t, " seconds.")
+                        success_run = verify_results(outdir_path, inputfilepath, R, O)
                         clean_directory(outdir_path)
+
+                        results.append([
+                            hardware, 
+                            case_name,
+                            R, 
+                            O, 
+                            I, 
+                            B, 
+                            model,
+                            round(t, 4),
+                            success_run
+                        ])
 
                     clean_directory(indir_path)
 
+    columns = [
+        'hardware',
+        'case_name',
+        'R',
+        'O',
+        'I',
+        'B',
+        'model', 
+        'process_time',
+        'sucess_run'
+    ]
+    write_csv(results, columns, paths["outdir"])
                     
