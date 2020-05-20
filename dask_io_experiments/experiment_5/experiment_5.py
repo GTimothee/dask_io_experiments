@@ -196,7 +196,7 @@ def rechunk_vanilla_dask(indir_path, outdir_path, nthreads):
                 t = time.time()
                 rechunk_task.compute()
                 t = time.time() - t
-                visualize([prof, rprof, cprof])
+                # visualize([prof, rprof, cprof])
             except Exception as e: 
                 print(e, "\nSomething went wrong during graph execution.")
                 t = None
@@ -254,10 +254,13 @@ def inspect_dir(dirpath):
     print(f'Inspecting {dirpath}...')
     workdir = os.getcwd()
     os.chdir(dirpath)
+    nb_outfiles = 0
     for filename in glob.glob("[0-9]*_[0-9]*_[0-9]*.hdf5"):
         with h5py.File(os.path.join(dirpath, filename), 'r') as f:
             inspect_h5py_file(f)
+        nb_outfiles += 1
     os.chdir(workdir)
+    print(f'Found {nb_outfiles} files.')
 
 
 def load_config(config_filepath):
@@ -276,6 +279,31 @@ def custom_imports(paths):
             sys.path.insert(0, path)
 
 
+def verify_results(outdir_path, original_array_path, R, O):
+    from dask_io.optimizer.cases.resplit_utils import get_blocks_shape
+    outfiles_partition = get_blocks_shape(R, O)
+
+    with h5py.File(original_array_path, 'r') as f:
+        orig_arr = f["/data"]
+
+        for i in range(outfiles_partition[0]):
+            for j in range(outfiles_partition[1]):
+                for k in range(outfiles_partition[2]):
+                    outfilename = f"{i}_{j}_{k}.hdf5"
+                    with h5py.File(os.path.join(outdir_path, outfilename), 'r') as f:
+                        data_stored = f["/data"]
+                        print(f"Slices from ground truth {i*O[0]}:{(i+1)*O[0]}, {j*O[1]}:{(j+1)*O[1]}, {k*O[2]}:{(k+1)*O[2]}")
+                        ground_truth = orig_arr[i*O[0]:(i+1)*O[0],j*O[1]:(j+1)*O[1],k*O[2]:(k+1)*O[2]]
+
+                        # print(data_stored[()])
+                        # print(ground_truth)
+                        try:
+                            assert np.allclose(data_stored[()], ground_truth)
+                            print(f"Good output file {outfilename}")
+                        except:
+                            print(f"Error: bad rechunking {outfilename}")
+
+
 if __name__ == "__main__":
     """ IMPORTANT: We assume that for all run on both ssd/hdd the same R is used. 
     Details:
@@ -288,7 +316,8 @@ if __name__ == "__main__":
     ------------------
     - we assume every hdf5 file contains only one dataset containing a chunk
     - each dataset is accessible with the key: "/data" (we load and store datasets with key "/data"), see h5py for details about datasets
-    - we only work with float16 datatypes
+    - we only work with float16 datatypes 
+    - we assume partition is perfect i.e. buffers create a partition of R (no remainders)
     """
     # TODO: use scheduler constraint and unithreading for split/merge
     # TODO: in split modify buffer size dynamically either with buffer = input file or by argument
@@ -319,7 +348,7 @@ if __name__ == "__main__":
     cases = load_config(args.config_cases)
     cases_to_run = get_cases_to_run(args, cases)
     models = ["plain_python"] # ["dask_vanilla_1thread", "dask_vanilla_nthreads", "plain_python", "keep"]
-    for datadir in [paths["hdd_path"], paths["ssd_path"]]:
+    for datadir in [paths["hdd_path"]]: # , paths["ssd_path"]]:
         print("Working on ", datadir)
 
         # create 2 directories in datadir
@@ -347,13 +376,15 @@ if __name__ == "__main__":
                     inputfilepath = os.path.join(datadir, "original_array.hdf5")
                     create_test_array(inputfilepath, R)  # if not already created
                     split(inputfilepath, I, indir_path)  # initially split the input array
-                    
+                    # inspect_dir(indir_path)
+
                     flush_cache()
                     random.shuffle(models)
                     for model in models:
                         print('Running model :', model)
                         rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep)
-                        inspect_dir(outdir_path)
+                        # inspect_dir(outdir_path)
+                        verify_results(outdir_path, inputfilepath, R, O)
                         clean_directory(outdir_path)
 
                     clean_directory(indir_path)

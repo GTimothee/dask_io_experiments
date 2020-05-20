@@ -1,4 +1,5 @@
 import os, glob, h5py
+import numpy as np
 
 def get_input_files(input_dirpath):
     workdir = os.getcwd()
@@ -14,15 +15,24 @@ def write_to_outfile(involume, outvolume, indset, outfiles_partition, outdir_pat
     from dask_io.optimizer.utils.utils import numeric_to_3d_pos
 
     # open out file
-    _3d_pos = numeric_to_3d_pos(outvolume.index, outfiles_partition, order='C')
+    _3d_pos = numeric_to_3d_pos(outvolume.index, outfiles_partition, order='F')
     i, j, k = _3d_pos
     out_filename = f'{i}_{j}_{k}.hdf5'
-    f = h5py.File(os.path.join(outdir_path, out_filename), 'w')
+
+    outfilepath = os.path.join(outdir_path, out_filename)
+    if not os.path.isfile(outfilepath):
+        f = h5py.File(outfilepath, 'w')
+    else:
+        f = h5py.File(outfilepath, 'r+')
 
     # if no datasets, create one
+    print("KEYS", list(f.keys()))
     if not "/data" in f.keys():
-        outdset = f.create_dataset("/data", O, dtype='f16')  # initialize an empty dataset
+        print('[debug] No dataset, creating dataset')
+        null_arr = np.zeros(O)
+        outdset = f.create_dataset("/data", O, data=null_arr)  # initialize an empty dataset
     else:
+        print('[debug] Dataset exists')
         outdset = f["/data"]
 
     # find subarray crossing both files
@@ -48,9 +58,19 @@ def write_to_outfile(involume, outvolume, indset, outfiles_partition, outdir_pat
     s = slices_in_infile
     s2 = slices_in_outfile
 
+    # print(f"[debug] extracting {s[0][0]}:{s[0][1]}, {s[1][0]}:{s[1][1]}, {s[2][0]}:{s[2][1]} from input file")
+    # print(f"[debug] inserting {s2[0][0]}:{s2[0][1]}, {s2[1][0]}:{s2[1][1]}, {s2[2][0]}:{s2[2][1]} into output file {out_filename}")
     data = indset[s[0][0]:s[0][1],s[1][0]:s[1][1],s[2][0]:s[2][1]]
     outdset[s2[0][0]:s2[0][1],s2[1][0]:s2[1][1],s2[2][0]:s2[2][1]] = data
     f.close()
+
+    with h5py.File(os.path.join(outdir_path, out_filename), 'r') as f:
+        stored = f['/data'][s2[0][0]:s2[0][1],s2[1][0]:s2[1][1],s2[2][0]:s2[2][1]]
+        # print(f"dataset after store: {f['/data'].value}")
+        if np.allclose(stored, data):
+            print("[success] data successfully stored.")
+        else:
+            print("[error] in data storage")
 
 
 def find_associated_volume(infilepath, infiles_volumes, infiles_partition):
@@ -83,6 +103,8 @@ def get_overlap_subarray(hypercube1, hypercube2):
         subarray_lowercorner.append(max(lowercorner1[i], lowercorner2[i]))
         subarray_uppercorner.append(min(uppercorner1[i], uppercorner2[i]))
 
+    
+    print(f"Overlap subarray : {subarray_lowercorner[0]}:{subarray_uppercorner[0]}, {subarray_lowercorner[1]}:{subarray_uppercorner[1]}, {subarray_lowercorner[2]}:{subarray_uppercorner[2]}")
     return (subarray_lowercorner, subarray_uppercorner)
 
 def rechunk_plain_python(indir_path, outdir_path, B, O, I, R):
