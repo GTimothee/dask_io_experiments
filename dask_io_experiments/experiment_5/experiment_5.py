@@ -364,7 +364,7 @@ if __name__ == "__main__":
     cases_to_run = get_cases_to_run(args, cases)
     models = ["dask_vanilla_1thread", "dask_vanilla_nthreads", "plain_python", "keep"]
     results = list()
-    for datadir, hardware in zip([paths["hdd_path"], paths["ssd_path"]], ['ssd', 'hdd']):
+    for datadir, hardware in zip([paths["hdd_path"], paths["ssd_path"]], ['hdd', 'ssd']):
         print("Working on ", datadir)
 
         # create 2 directories in datadir
