@@ -372,6 +372,8 @@ if __name__ == "__main__":
         for dirpath in [indir_path, outdir_path]:
             if not os.path.isdir(dirpath):
                 os.mkdir(dirpath)
+            else:
+                clean_directory(dirpath)
         print("Done. Running experiment...")
 
         for case_name, runs in cases.items():
