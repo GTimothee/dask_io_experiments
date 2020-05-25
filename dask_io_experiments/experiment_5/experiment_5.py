@@ -2,7 +2,6 @@ import random, sys, os, argparse, json, h5py, glob
 import shutil, time
 from time import gmtime, strftime
 import numpy as np
-sys.path.insert(0, './')
 
 ONE_GIG = 1000000
 

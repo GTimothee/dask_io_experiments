@@ -1,6 +1,5 @@
 import os, uuid, pdb, time, csv, itertools, sys
 import numpy as np
-sys.path.insert(0, "./")
 
 from random import shuffle
 from cachey import nbytes
