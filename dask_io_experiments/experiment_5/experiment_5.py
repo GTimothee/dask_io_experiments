@@ -372,8 +372,7 @@ if __name__ == "__main__":
         for dirpath in [indir_path, outdir_path]:
             if not os.path.isdir(dirpath):
                 os.mkdir(dirpath)
-            else:
-                clean_directory(dirpath)
+                
         print("Done. Running experiment...")
 
         for case_name, runs in cases.items():
@@ -385,6 +384,8 @@ if __name__ == "__main__":
                 random.shuffle(runs)
 
                 for run in runs: 
+                    clean_directory(indir_path)
+
                     print("Current run:\n", run)
                     R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
 
@@ -413,8 +414,6 @@ if __name__ == "__main__":
                             round(t, 4),
                             success_run
                         ])
-
-                    clean_directory(indir_path)
 
     columns = [
         'hardware',
