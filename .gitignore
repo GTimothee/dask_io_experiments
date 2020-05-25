@@ -2,6 +2,7 @@
 dask_io_experiments/custom_setup.py
 dask_io_experiments/experiment_1/outputs
 dask_io_experiments/experiment_2/outputs
+dask_io_experiments/config.json
 profile.html
 
 # Byte-compiled / optimized / DLL files
