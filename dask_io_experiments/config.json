@@ -1,7 +1,7 @@
 {
-    "dask_io_path": "",
-    "custom_dask_path": "",
-    "monitor_path": "",
+    "lib_dask_io_path": "",
+    "lib_custom_dask_path": "",
+    "lib_monitor_path": "",
     "ssd_path": "",
     "hdd_path": "",
     "outdir": ""

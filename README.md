@@ -2,10 +2,10 @@
 Experiments and benchmarks for the dask_io module.
 
 Description: 
-- experiment 1: [working] Benchmark of clustered implementation (split only)
+- experiment 1: [working] This experiment is described as experiment 2 in Guédon et al. Benchmark of clustered implementation (split only)
 - experiment 2: [to_refactor] Evaluation of read/write time from hdf5 file to npy/hdf5 file(s)
 - experiment 3: [to_refactor] Test of resplit implementation
-- experiment 4: [working] Vanilla dask clean benchmark on split and merge tasks
+- experiment 4: [working] This experiment is described as experiment 1 in Guédon et al. Vanilla dask clean benchmark on split and merge tasks
 - experiment 5: [working] This experiment is described as experiment 3 in Guédon et al. It is composed of three parts and tests dask_io. 
 
 ## Setup
@@ -31,6 +31,12 @@ The second type of paths is data paths:
 Run the following commands from inside the "dask_io_experiments" main folder.
 In any experiment, add "-t" to run it in test mode first and see if everything is OK before running the experiment on the big arrays.
 Use "--help" or "-h" to see the command line arguments.
+
+Experiment 1:
+
+``` python dask_io_experiments/experiment_1/experiment_1.py --help ```
+
+``` python dask_io_experiments/experiment_1/experiment_1.py -t dask_io_experiments/pathsconfig.json ```
 
 Experiment 4:
 

@@ -4,10 +4,51 @@ sys.path.insert(0, "./")
 
 from random import shuffle
 from cachey import nbytes
-from time import gmtime, strftime
 
 from dask_io_experiments.experiment_1.helpers import *
         
+
+def verify_results_merge(input_array_path, merged_array_path):
+    original_array = get_dask_array_from_hdf5(input_array_path, "/data")
+    merged_array = get_dask_array_from_hdf5(merged_array_path, "/data")
+    verify_task = da.allclose(original_array, merged_array)
+    print("VERIFY TASK: ", verify_task)
+    disable_clustering()
+    _res = verify_task.compute()
+    print("RESULT: ", _res)
+    if _res == False:
+        print("[Error] Rechunk failed")
+    return _res
+
+
+def verify_results_split(R, I, input_array_path, datadir):
+    from dask_io.optimizer.cases.resplit_utils import get_blocks_shape
+    splitfiles_partition = get_blocks_shape(R, I)
+    print("split files partiton:", splitfiles_partition)
+
+    all_true = True
+    orig_arr = get_dask_array_from_hdf5(input_array_path, "/data", logic_cs=tuple(I))
+
+    for i in range(splitfiles_partition[0]):
+        for j in range(splitfiles_partition[1]):
+            for k in range(splitfiles_partition[2]):
+                splitfilename = f"{i}_{j}_{k}.hdf5"
+                split_filepath = os.path.join(datadir, splitfilename)
+                print("opening", split_filepath)
+                splitarray = get_dask_array_from_hdf5(split_filepath, "/data")
+                print(f"Slices from ground truth {i*I[0]}:{(i+1)*I[0]}, {j*I[1]}:{(j+1)*I[1]}, {k*I[2]}:{(k+1)*I[2]}")
+                ground_truth_arr = orig_arr[i*I[0]:(i+1)*I[0],j*I[1]:(j+1)*I[1],k*I[2]:(k+1)*I[2]]
+
+                verify_task = da.allclose(ground_truth_arr, splitarray)
+                print("VERIFY TASK: ", verify_task)
+                disable_clustering()
+                _res = verify_task.compute()
+                print("RESULT: ", _res)
+                if _res == False:
+                    print(f"[Error] Split failed for {splitfilename}")
+                    all_true = False
+    return all_true
+
 
 def run_to_hdf5(arr, params, uid):
     """ Execute a dask array with a given configuration.
@@ -46,19 +87,19 @@ def run_to_hdf5(arr, params, uid):
 
         if t != None:
             diagnostics = os.path.join(paths["outdir"], str(uid) + '.html')
-            visualize([prof, rprof, cprof], diagnostics)   
+            # visualize([prof, rprof, cprof], diagnostics)   
         else:
             diagnostics = None
         return t, diagnostics, write_monitor_logs(_monitor, uid, paths)
     
         
-def run_test(test, output_dir):
+def run_test(test, paths):
     """ Wrapper around 'run' function for diagnostics.
 
     Arguments:
     ----------
         test:
-        output_dir:
+        paths:
     """
     test.print_config()
     uid = uuid.uuid4() 
@@ -76,12 +117,18 @@ def run_test(test, output_dir):
     flush_cache()
     arr = splitcase.get()
     tsplit, diagnostics_split, monitor_split = run_to_hdf5(arr, params, uid)
+    R = cuboids[params["cuboid_name"]]['shape']
+    I = splitcase.chunks_shape
+    print(f'R: {R}')
+    print(f'I: {I}')
+    success_run_split = verify_results_split(R, I, getattr(test, 'cuboid_filepath'), getattr(test, 'hardware_path'))
     print(f'[Split] Find the diagnostics output file at {diagnostics_split}')
     print(f'[Split] Find the monitor output file at {monitor_split}')
 
     flush_cache()
     arr = mergecase.get()
     tmerge, diagnostics_merge, monitor_merge = run_to_hdf5(arr, params, uid)
+    success_run_merge = verify_results_merge(getattr(test, 'cuboid_filepath'), getattr(test, 'merge_filepath'))
     print(f'[Merge] Find the diagnostics output file at {diagnostics_merge}')
     print(f'[Merge] Find the monitor output file at {monitor_merge}')
 
@@ -104,7 +151,9 @@ def run_test(test, output_dir):
         diagnostics_split, 
         diagnostics_merge,
         monitor_split,
-        monitor_merge
+        monitor_merge,
+        success_run_split,
+        success_run_merge
     ]
 
 
@@ -135,7 +184,7 @@ def create_tests():
     # Generate all combinations of test parameters
     print(f'Generating tests...')
     options = [
-        ["hdd", "ssd"],
+        ["hdd"],
         args.cuboids,
         ["optimized", "non_optimized"]
     ]
@@ -173,7 +222,7 @@ def experiment1():
         result = run_test(test, paths)
         results.append(result)
 
-    write_csv(results, paths["outdir"])
+    write_csv(results, paths["outdir"], create_csv_file)
 
 
 if __name__ == "__main__":
@@ -186,7 +235,7 @@ if __name__ == "__main__":
     import dask_io
     from dask.diagnostics import ResourceProfiler, Profiler, CacheProfiler, visualize
     from dask_io.optimizer.utils.utils import flush_cache, create_csv_file
-    from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5
+    from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5, get_dask_array_from_hdf5
     from dask_io.optimizer.cases.case_validation import check_split_output_hdf5
     from dask_io.optimizer.configure import enable_clustering, disable_clustering
     from dask_io_experiments.test_config import TestConfig

@@ -1,5 +1,6 @@
 import argparse, os, json, sys, traceback, glob
 import numpy as np
+from time import gmtime, strftime
 
 
 def load_config(config_filepath):
@@ -77,7 +78,7 @@ def write_monitor_logs(_monitor, uid, paths):
     return monitor_logfilepath
 
 
-def write_csv(rows, outdir):
+def write_csv(rows, outdir, create_csv_file):
     csv_path = os.path.join(outdir, 'exp1_' + strftime("%Y-%m-%d %H:%M:%S", gmtime()) + '_out.csv')
     print(f'Creating csv file at {csv_path}.')
     csv_out, writer = create_csv_file(csv_path, columns, delimiter=',', mode='w+')
@@ -117,6 +118,8 @@ columns = ['hardware',
     'diagnostics_merge',
     'monitor_split',
     'monitor_merge',
+    'success_run_split',
+    'success_run_merge'
 ]
 
 ONE_GIG = 1000000
