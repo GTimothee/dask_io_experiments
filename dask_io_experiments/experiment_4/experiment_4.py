@@ -31,16 +31,19 @@ def get_arguments():
     parser.add_argument('-t', '--testmode', action='store_true', default=False,
         dest='testmode',
         help='Test if setup working.')
+    parser.add_argument('-o', '--overwrite', action='store_true', default=False,
+        dest='overwritearray',
+        help='Set to true to overwrite input array if already exists. Default is False.')
     return parser.parse_args()
 
 
-def create_test_array(datadir, testmode):
+def create_test_array(datadir, testmode, filepath):
     print("Creating test array in data directory ", datadir)
     if testmode:
         shape = (50,50,50) 
     else:
         shape = (1925, 1512, 1750) # 1/8 of big brain size
-    filepath = os.path.join(datadir, "inputfile.hdf5")
+    
     arr = create_random_dask_array(shape, distrib='uniform', dtype=np.float16)
 
     try:
@@ -48,7 +51,6 @@ def create_test_array(datadir, testmode):
     except:
         print("Something went wrong while creating the test array. Aborting.")
         sys.exit(1)
-    return filepath
 
 
 """
@@ -107,13 +109,12 @@ def merge(datadir):
     return tmerge, out_filepath
 
 
-def clean_directory(datadir, merged_filepath):
+def clean_directory(datadir):
     workdir = os.getcwd()
     os.chdir(datadir)
     for filepath in glob.glob("[0-9]*_[0-9]*_[0-9]*.hdf5"):
         os.remove(filepath)
     os.chdir(workdir)
-    os.remove(merged_filepath)
 
 
 def save_to_csv(outdir, rows):
@@ -155,7 +156,12 @@ if __name__ == "__main__":
 
     rows = list()
     for datadir, dirtype in zip([paths['ssd_path'], paths['hdd_path']], ['SSD', 'HDD']):
-        filepath = create_test_array(datadir, testmode)
+        filepath = os.path.join(datadir, "inputfile.hdf5")
+        if args.overwritearray:
+            if os.path.isfile(filepath):
+                os.remove(filepath)
+        clean_directory(datadir)
+        create_test_array(datadir, testmode, filepath)
 
         for cs in shapes:
             flush_cache()
@@ -167,7 +173,8 @@ if __name__ == "__main__":
             print("time to split: ", t1, "seconds.")
             print("time to merge: ", t2, "seconds")
             
-            clean_directory(datadir, merged_filepath)
+            clean_directory(datadir)
+            os.remove(merged_filepath)
         
         os.remove(filepath)
 
