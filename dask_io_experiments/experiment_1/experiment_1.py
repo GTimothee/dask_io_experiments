@@ -4,8 +4,6 @@ sys.path.insert(0, "./")
 
 from random import shuffle
 from cachey import nbytes
-
-from dask_io_experiments.experiment_1.helpers import *
         
 
 def verify_results_merge(input_array_path, merged_array_path):
@@ -239,6 +237,7 @@ if __name__ == "__main__":
     from dask_io.optimizer.cases.case_validation import check_split_output_hdf5
     from dask_io.optimizer.configure import enable_clustering, disable_clustering
     from dask_io_experiments.test_config import TestConfig
+    from dask_io_experiments.experiment_1.helpers import *
     from monitor.monitor import Monitor
 
     print("Output of monitor will be printed in 'outdir' if the run was successful.")

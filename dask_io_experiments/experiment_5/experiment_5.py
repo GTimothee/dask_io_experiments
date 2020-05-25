@@ -4,8 +4,6 @@ from time import gmtime, strftime
 import numpy as np
 sys.path.insert(0, './')
 
-from dask_io_experiments.experiment_5.plain_python_model import rechunk_plain_python
-
 ONE_GIG = 1000000
 
 
@@ -352,6 +350,7 @@ if __name__ == "__main__":
     from dask_io.optimizer.cases.case_config import Split, Merge
     from dask_io.optimizer.cases.resplit_case import compute_zones
     from dask_io.optimizer.cases.resplit_utils import get_blocks_shape
+    from dask_io_experiments.experiment_5.plain_python_model import rechunk_plain_python
 
     import logging
     import logging.config
