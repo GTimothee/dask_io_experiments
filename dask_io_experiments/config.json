@@ -2,6 +2,7 @@
     "lib_dask_io_path": "",
     "lib_custom_dask_path": "",
     "lib_monitor_path": "",
+    "lib_dask_io_experiments_path": ,
     "ssd_path": "",
     "hdd_path": "",
     "outdir": ""

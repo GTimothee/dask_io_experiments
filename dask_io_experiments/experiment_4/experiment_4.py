@@ -97,6 +97,7 @@ def split(datadir, filepath, cs):
         return tsplit
     except Exception as e: 
         print(e, "\nOops something went wrong... Aborting.")
+        splitcase.clean()
         sys.exit(1)
 
 
@@ -108,10 +109,11 @@ def merge(datadir):
     arr = mergecase.get()
     try:
         tmerge = run(arr)
+        mergecase.clean()
     except Exception as e: 
         print(e, "\nOops something went wrong... Aborting.")
+        mergecase.clean()
         sys.exit(1)
-    mergecase.clean()
     return tmerge, out_filepath
 
 
