@@ -5,6 +5,7 @@ import numpy as np
 import json
 import argparse
 import sys, os, time, glob
+import random
 
 
 def load_config(config_filepath):
@@ -34,6 +35,11 @@ def get_arguments():
     parser.add_argument('-o', '--overwrite', action='store_true', default=False,
         dest='overwritearray',
         help='Set to true to overwrite input array if already exists. Default is False.')
+    parser.add_argument('-n', '--nb_repetitions', action='store', 
+        type=int, 
+        dest='nb_repetitions',
+        help='Number of repetitions for each case of the experiment. Default is 5.',
+        default=5)
     return parser.parse_args()
 
 
@@ -57,20 +63,20 @@ def create_test_array(datadir, testmode, filepath):
 Both chunk shapes are ~same size in voxels:
 - good cs: 
     chunk type: slice (slab with depth =1)
-    2646000 voxels/slice
-    1925 slices
-    chunks partition: (1925,1,1)
+    13 230 000 voxels/slice
+    385 slices
+    chunks partition: (385,1,1)
 - bad cs: 
     chunk type: block
-    2756250 voxels/block
-    1848 blocks
-    chunks partition: (11,12,14)
+    12 993 750 voxels/block
+    392 blocks
+    chunks partition: (7,8,7)
 """
 chunk_shapes = {
-    "good_cs": (1,1512,1750), 
-    "bad_cs": (175,126,125), 
+    "good_cs": (5,1512,1750),
+    "bad_cs": (275,189,250),
     "testshape1": (10,10,10),
-    "testshape2": (25,25,25) 
+    "testshape2": (25,25,25)
 }
 
 
@@ -155,28 +161,37 @@ if __name__ == "__main__":
     from dask_io.optimizer.cases.case_config import Split, Merge
 
     rows = list()
-    for datadir, dirtype in zip([paths['ssd_path'], paths['hdd_path']], ['SSD', 'HDD']):
-        filepath = os.path.join(datadir, "inputfile.hdf5")
-        if args.overwritearray:
-            if os.path.isfile(filepath):
-                os.remove(filepath)
-        clean_directory(datadir)
-        create_test_array(datadir, testmode, filepath)
-
-        for cs in shapes:
-            flush_cache()
-            t1 = split(datadir, filepath, cs)
-            flush_cache()
-            t2, merged_filepath = merge(datadir)
-
-            rows.append([dirtype, chunk_shapes[cs], t1, t2])
-            print("time to split: ", t1, "seconds.")
-            print("time to merge: ", t2, "seconds")
-            
+    for i in range(args.nb_repetitions):
+        print(f'Iteration: {i+1}')
+        for datadir, dirtype in zip([paths['ssd_path'], paths['hdd_path']], ['SSD', 'HDD']):
+            print(f'Execution on {dirtype}')
+            filepath = os.path.join(datadir, "inputfile.hdf5")
+            if args.overwritearray:
+                if os.path.isfile(filepath):
+                    print(f'Removing existing original array...')
+                    os.remove(filepath)
             clean_directory(datadir)
-            os.remove(merged_filepath)
-        
-        os.remove(filepath)
+            print(f'Creating original array if not already available...')
+            create_test_array(datadir, testmode, filepath)
 
+            random.shuffle(shapes)
+            for cs in shapes:
+                flush_cache()
+                print(f'Splitting original array with chunk shape: {cs}...')
+                t1 = split(datadir, filepath, cs)
+                flush_cache()
+                print(f'Merging splits back...')
+                t2, merged_filepath = merge(datadir)
+
+                rows.append([dirtype, chunk_shapes[cs], t1, t2])
+                print("Time to split: ", t1, "seconds.")
+                print("Time to merge: ", t2, "seconds")
+                
+                clean_directory(datadir)
+                os.remove(merged_filepath)
+            
+            os.remove(filepath)
+    
+    print(f'Saving results...')
     save_to_csv(paths['outdir'], rows)
     print(f'Done.')
