@@ -178,7 +178,10 @@ def run_test(test, paths):
     I = splitcase.chunks_shape
     print(f'R: {R}')
     print(f'I: {I}')
-    success_run_split = verify_results_split(R, I, getattr(test, 'cuboid_filepath'), getattr(test, 'hardware_path'))
+    if not 'auto' in I:
+        success_run_split = verify_results_split(R, I, getattr(test, 'cuboid_filepath'), getattr(test, 'hardware_path'))
+    else:
+        success_run_split = None
     print(f'[Split] Find the diagnostics output file at {diagnostics_split}')
     print(f'[Split] Find the monitor output file at {monitor_split}')
 

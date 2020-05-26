@@ -62,9 +62,9 @@ def create_test_array(datadir, testmode, filepath):
 """
 Both chunk shapes are ~same size in voxels:
 - good cs: 
-    chunk type: slice (slab with depth =1)
-    13 230 000 voxels/slice
-    385 slices
+    chunk type: slab 
+    13 230 000 voxels/slab
+    385 slabs
     chunks partition: (385,1,1)
 - bad cs: 
     chunk type: block
