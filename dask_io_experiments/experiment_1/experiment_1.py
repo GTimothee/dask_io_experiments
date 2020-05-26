@@ -347,7 +347,7 @@ if __name__ == "__main__":
         }
     }
 
-    for p in [paths["hdd_path", "ssd_path"]]:
+    for p in [paths["hdd_path"], paths["ssd_path"]]:
         for cuboid_name in ["test, small, big, big_brain"]:
             fp = os.path.join(p, cuboid_name + ".hdf5")
             if os.path.isfile(fp):
