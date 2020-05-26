@@ -71,6 +71,7 @@ def verify_results_merge(input_array_path, merged_array_path):
     print("RESULT: ", _res)
     if _res == False:
         print("[Error] Rechunk failed")
+    clean_files()
     return _res
 
 
@@ -100,6 +101,8 @@ def verify_results_split(R, I, input_array_path, datadir):
                 if _res == False:
                     print(f"[Error] Split failed for {splitfilename}")
                     all_true = False
+    
+    clean_files()
     return all_true
 
 
@@ -170,6 +173,7 @@ def run_test(test, paths):
     flush_cache()
     arr = splitcase.get()
     tsplit, diagnostics_split, monitor_split = run_to_hdf5(arr, params, uid)
+    splitcase.clean()
     R = cuboids[params["cuboid_name"]]['shape']
     I = splitcase.chunks_shape
     print(f'R: {R}')
@@ -181,6 +185,7 @@ def run_test(test, paths):
     flush_cache()
     arr = mergecase.get()
     tmerge, diagnostics_merge, monitor_merge = run_to_hdf5(arr, params, uid)
+    mergecase.clean()
     success_run_merge = verify_results_merge(getattr(test, 'cuboid_filepath'), getattr(test, 'merge_filepath'))
     print(f'[Merge] Find the diagnostics output file at {diagnostics_merge}')
     print(f'[Merge] Find the monitor output file at {monitor_merge}')
@@ -189,7 +194,6 @@ def run_test(test, paths):
     merge_filepath = getattr(test, 'merge_filepath')
     clean_directory(datadir, merge_filepath)
 
-    test.clean_cases()  # close files.
     return [
         params["hardware"], 
         params["cuboid_name"],
@@ -288,7 +292,7 @@ if __name__ == "__main__":
     import dask_io
     from dask.diagnostics import ResourceProfiler, Profiler, CacheProfiler, visualize
     from dask_io.optimizer.utils.utils import flush_cache, create_csv_file
-    from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5, get_dask_array_from_hdf5
+    from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5, get_dask_array_from_hdf5, clean_files
     from dask_io.optimizer.cases.case_validation import check_split_output_hdf5
     from dask_io.optimizer.configure import enable_clustering, disable_clustering
     from dask_io_experiments.test_config import TestConfig

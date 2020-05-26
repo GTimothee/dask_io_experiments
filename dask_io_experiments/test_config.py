@@ -44,12 +44,6 @@ class TestConfig():
             print("Something went wrong while creating case config.")
             exit(1)
 
-
-    def clean_cases(self):
-        self.splitcase.clean()
-        self.mergecase.clean()
-
-
     def print_config(self):
         print(f'\n-------------------')
         print(f'Test configuration')
