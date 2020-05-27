@@ -376,6 +376,10 @@ if __name__ == "__main__":
     for datadir, hardware in zip([paths["hdd_path"], paths["ssd_path"]], ['hdd', 'ssd']):
         print("Working on ", datadir)
 
+        inputfilepath = os.path.join(datadir, "original_array.hdf5")
+        if os.path.isfile(inputfilepath):
+            os.remove(inputfilepath)
+
         # create 2 directories in datadir
         print("Creating data directories...")
         indir_path = os.path.join(datadir, "input_files")
@@ -402,7 +406,6 @@ if __name__ == "__main__":
                         R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
 
                         # create and split the input file
-                        inputfilepath = os.path.join(datadir, "original_array.hdf5")
                         create_test_array(inputfilepath, R)  # if not already created
                         split(inputfilepath, I, indir_path)  # initially split the input array
 
