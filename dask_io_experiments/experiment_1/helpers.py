@@ -1,5 +1,6 @@
 import os, json, sys, traceback, glob
 import numpy as np
+import time 
 from time import gmtime, strftime
 
 
@@ -38,8 +39,11 @@ def create_test_array(test, create_random_dask_array, save_to_hdf5):
         try:
             params = getattr(test, 'params')
             path = getattr(test, 'cuboid_filepath')
+            print(f'Creating file at {path}')
+            t = time.time()
             arr = create_random_dask_array(params["array_shape"], distrib='uniform', dtype=np.float16)
             save_to_hdf5(arr, path, physik_cs=None, key='/data', compression=None)
+            print(f'Time to create the input array: {time.time() - t}s')
         except Exception as e:
             print(traceback.format_exc())
             print("Input array creation failed.")
