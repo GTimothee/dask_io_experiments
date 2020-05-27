@@ -144,6 +144,7 @@ def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep):
                 print(e, "\nSomething went wrong during graph execution.")
                 t = None
 
+    case.clean()
     for f in out_files:
         f.close()
     return t
@@ -208,6 +209,8 @@ def rechunk_vanilla_dask(indir_path, outdir_path, nthreads):
             except Exception as e: 
                 print(e, "\nSomething went wrong during graph execution.")
                 t = None
+
+    clean_files()
 
     for f in out_files:
         f.close()
@@ -350,7 +353,7 @@ if __name__ == "__main__":
     import dask_io
     from dask.diagnostics import ResourceProfiler, Profiler, CacheProfiler, visualize
     from dask_io.optimizer.utils.utils import flush_cache, create_csv_file, numeric_to_3d_pos
-    from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5, get_dask_array_from_hdf5
+    from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5, get_dask_array_from_hdf5, clean_files
     from dask_io.optimizer.utils.array_utils import inspect_h5py_file
     from dask_io.optimizer.cases.case_validation import check_split_output_hdf5
     from dask_io.optimizer.configure import enable_clustering, disable_clustering

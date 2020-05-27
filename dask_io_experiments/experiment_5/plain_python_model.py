@@ -114,7 +114,7 @@ def rechunk_plain_python(indir_path, outdir_path, B, O, I, R):
     globals()['dask_io'] = __import__('dask_io')
     
     from dask_io.optimizer.cases.resplit_utils import get_blocks_shape, get_named_volumes, hypercubes_overlap
-    from dask_io.optimizer.utils.get_arrays import get_dataset
+    from dask_io.optimizer.utils.get_arrays import get_dataset, clean_files
 
     infiles_partition = get_blocks_shape(R, I)
     infiles_volumes = get_named_volumes(infiles_partition, I)
@@ -128,4 +128,5 @@ def rechunk_plain_python(indir_path, outdir_path, B, O, I, R):
         for outvolume in outfiles_volumes.values():
             if hypercubes_overlap(involume, outvolume):
                 write_to_outfile(involume, outvolume, data, outfiles_partition, outdir_path, O)
+        clean_files()
     return time.time() - t
