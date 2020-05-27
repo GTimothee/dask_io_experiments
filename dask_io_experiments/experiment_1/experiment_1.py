@@ -178,7 +178,10 @@ def run_test(test, paths):
     I = splitcase.chunks_shape
     print(f'R: {R}')
     print(f'I: {I}')
-    success_run_split = verify_results_split(R, I, getattr(test, 'cuboid_filepath'), getattr(test, 'hardware_path'))
+    if not 'auto' in I:
+        success_run_split = verify_results_split(R, I, getattr(test, 'cuboid_filepath'), getattr(test, 'hardware_path'))
+    else:
+        success_run_split = None
     print(f'[Split] Find the diagnostics output file at {diagnostics_split}')
     print(f'[Split] Find the monitor output file at {monitor_split}')
 
@@ -275,7 +278,10 @@ def experiment1():
     results = list()
     for i, test in enumerate(tests):
         print(f'\n\nProcessing test {i + 1}/{len(tests)} ~')
+        print(f'Creating test array if needed...')
         create_test_array(test, create_random_dask_array, save_to_hdf5)
+        clean_files()
+        print(f'Done. Running test...')
         result = run_test(test, paths)
         results.append(result)
 
@@ -348,10 +354,13 @@ if __name__ == "__main__":
     }
 
     for p in [paths["hdd_path"], paths["ssd_path"]]:
-        for cuboid_name in ["test, small, big, big_brain"]:
+        for cuboid_name in ["test", "small", "big", "big_brain"]:
             fp = os.path.join(p, cuboid_name + ".hdf5")
             if os.path.isfile(fp):
+                print(f'Removing file {fp}')
                 os.remove(fp)
+            else:
+                print(f'Input file {fp} does not exist')
 
     if args.cuboids == None: 
         args.cuboids = list(cuboids.keys())

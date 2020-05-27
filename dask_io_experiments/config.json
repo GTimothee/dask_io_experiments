@@ -1,9 +1,11 @@
 {
-    "lib_dask_io_path": "",
-    "lib_custom_dask_path": "",
-    "lib_monitor_path": "",
-    "lib_dask_io_experiments_path": ,
-    "ssd_path": "",
-    "hdd_path": "",
-    "outdir": ""
+    "lib_dask_io_path": "/home/gtimothee/dask_io",
+    "lib_custom_dask_path": "/home/gtimothee/dask_modified",
+    "lib_monitor_path": "/home/gtimothee/monitor",
+    "lib_dask_io_exp": "/home/gtimothee/dask_io_experiments",
+    "lib_workspace": "/home/gtimothee",
+    "ssd_path": "/disk3/gtimothee",
+    "hdd_path": "/mnt/lustre/gtimothee",
+    "outdir": "/home/gtimothee/outputs"
 }
+

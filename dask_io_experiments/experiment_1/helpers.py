@@ -43,7 +43,9 @@ def create_test_array(test, create_random_dask_array, save_to_hdf5):
         except Exception as e:
             print(traceback.format_exc())
             print("Input array creation failed.")
-            return False 
+            return False
+    else:
+        print(f'Array already exists.')
     return True 
 
 
