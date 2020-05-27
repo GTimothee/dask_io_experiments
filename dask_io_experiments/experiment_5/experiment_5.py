@@ -445,7 +445,7 @@ if __name__ == "__main__":
                             if all(r == 0 for r in remainders):
                                 print(f"Testing case 1 with: \n\tR={R}, \n\tO={O}, \n\tI={I}, \n\tB={B}, \n\tvolumestokeep={volumestokeep}")
                             
-                                create and split the input file
+                                # create and split the input file
                                 inputfilepath = os.path.join(datadir, "original_array.hdf5")
                                 create_test_array(inputfilepath, R)  # if not already created
                                 split(inputfilepath, I, indir_path)  # initially split the input array
