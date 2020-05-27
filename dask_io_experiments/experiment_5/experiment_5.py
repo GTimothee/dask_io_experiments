@@ -1,4 +1,4 @@
-import random, sys, os, argparse, json, h5py, glob
+import random, sys, os, argparse, json, h5py, glob, math
 import shutil, time
 from time import gmtime, strftime
 import numpy as np
@@ -246,7 +246,7 @@ def get_cases_to_run(args, cases):
             sys.exit(1)
         return cases_to_run 
     else:
-        return all_cases_names
+        return ["case 1", "case 2", "case 3"]
 
 
 def clean_directory(dirpath):
@@ -314,6 +314,14 @@ def verify_results(outdir_path, original_array_path, R, O):
                             print(f"Error: bad rechunking {outfilename}")
                             all_true = False  # do not return here to see all failures
     return all_true
+
+
+def get_input_aggregate(O, I):
+    lambd = list()
+    dimensions = len(O)
+    for dim in range(dimensions):
+        lambd.append(math.ceil(O[dim]/I[dim])*I[dim])
+    return lambd
 
 
 if __name__ == "__main__":
@@ -387,33 +395,84 @@ if __name__ == "__main__":
                     clean_directory(indir_path)
 
                     print("Current run:\n", run)
-                    R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
+                    if case_name == "case test":
+                        R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
 
-                    # create and split the input file
-                    inputfilepath = os.path.join(datadir, "original_array.hdf5")
-                    create_test_array(inputfilepath, R)  # if not already created
-                    split(inputfilepath, I, indir_path)  # initially split the input array
+                        # create and split the input file
+                        inputfilepath = os.path.join(datadir, "original_array.hdf5")
+                        create_test_array(inputfilepath, R)  # if not already created
+                        split(inputfilepath, I, indir_path)  # initially split the input array
 
-                    random.shuffle(models)
-                    for model in models:
-                        flush_cache()
-                        print('Running model :', model)
-                        t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep)
-                        print("Processing time: ", t, " seconds.")
-                        success_run = verify_results(outdir_path, inputfilepath, R, O)
-                        clean_directory(outdir_path)
+                        random.shuffle(models)
+                        for model in models:
+                            flush_cache()
+                            print('Running model :', model)
+                            t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep)
+                            print("Processing time: ", t, " seconds.")
+                            success_run = verify_results(outdir_path, inputfilepath, R, O)
+                            clean_directory(outdir_path)
 
-                        results.append([
-                            hardware, 
-                            case_name,
-                            R, 
-                            O, 
-                            I, 
-                            B, 
-                            model,
-                            round(t, 4),
-                            success_run
-                        ])
+                            results.append([
+                                hardware, 
+                                case_name,
+                                R, 
+                                O, 
+                                I, 
+                                B, 
+                                model,
+                                round(t, 4),
+                                success_run
+                            ])
+
+                    elif case_name == "case 1":
+                        R, O, I = tuple(run["R"]), tuple(run["O"]), tuple(run["I"])
+                        lambd = get_input_aggregate(O, I)
+                        print(f'Found input aggregate of shape {lambd}')
+
+                        memorycases = [
+                            [(1,1,lambd[2]), [1]],
+                            [(1,lambd[1],lambd[2]), [1,2,3]],
+                            [(lambd[0],lambd[1],lambd[2]), list(range(1,8))]
+                        ]
+
+                        random.shuffle(memorycases)
+                        for memorycase in memorycases:
+                            B, volumestokeep = memorycase    
+                            
+                            print(f'Partition: {R[0]/B[0]}, {R[1]/B[1]}, {R[2]/B[2]}')
+                            print(f'Remainders: {R[0]%B[0]}, {R[1]%B[1]}, {R[2]%B[2]}')
+                            remainders = [R[0]%B[0], R[1]%B[1], R[2]%B[2]]
+                            if all(r == 0 for r in remainders):
+                                print(f"Testing case 1 with: \n\tR={R}, \n\tO={O}, \n\tI={I}, \n\tB={B}, \n\tvolumestokeep={volumestokeep}")
+                            
+                                create and split the input file
+                                inputfilepath = os.path.join(datadir, "original_array.hdf5")
+                                create_test_array(inputfilepath, R)  # if not already created
+                                split(inputfilepath, I, indir_path)  # initially split the input array
+
+                                random.shuffle(models)
+                                for model in models:
+                                    flush_cache()
+                                    print('Running model :', model)
+                                    t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep)
+                                    print("Processing time: ", t, " seconds.")
+                                    success_run = verify_results(outdir_path, inputfilepath, R, O)
+                                    clean_directory(outdir_path)
+
+                                    results.append([
+                                        hardware, 
+                                        case_name,
+                                        R, 
+                                        O, 
+                                        I, 
+                                        B, 
+                                        model,
+                                        round(t, 4),
+                                        success_run
+                                    ])
+                    else:
+                        print("not supported yet")
+                        break
 
     columns = [
         'hardware',
