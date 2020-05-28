@@ -181,14 +181,13 @@ if __name__ == "__main__":
                 flush_cache()
                 print(f'Splitting original array with chunk shape: {cs}...')
                 t1 = split(datadir, filepath, cs)
+                print("Time to split: ", t1, "seconds.")
                 flush_cache()
                 print(f'Merging splits back...')
                 t2, merged_filepath = merge(datadir)
-
-                rows.append([dirtype, chunk_shapes[cs], t1, t2])
-                print("Time to split: ", t1, "seconds.")
                 print("Time to merge: ", t2, "seconds")
-                
+                rows.append([dirtype, chunk_shapes[cs], t1, t2])
+                                
                 clean_directory(datadir)
                 os.remove(merged_filepath)
             

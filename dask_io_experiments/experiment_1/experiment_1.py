@@ -197,7 +197,7 @@ def run_test(test, paths):
     merge_filepath = getattr(test, 'merge_filepath')
     clean_directory(datadir, merge_filepath)
 
-    return [
+    sample_res = [
         params["hardware"], 
         params["cuboid_name"],
         params["array_shape"],
@@ -215,6 +215,8 @@ def run_test(test, paths):
         success_run_split,
         success_run_merge
     ]
+    print("-------------RESULT\n", sample_res)
+    return sample_res
 
 
 def create_tests():    
