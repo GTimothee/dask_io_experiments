@@ -246,7 +246,7 @@ def create_tests():
     # Generate all combinations of test parameters
     print(f'Generating tests...')
     options = [
-        ["hdd"],
+        ["ssd"], # WARNING running on ssd only
         args.cuboids,
         ["optimized", "non_optimized"]
     ]
@@ -317,42 +317,42 @@ if __name__ == "__main__":
     - dont know size if use `auto`
     """
     cuboids = {
-        'test':{  
-            'shape': (400, 400, 400),
-            'buffer_size': 2 * ONE_GIG,
-            'blocks':[(100, 100, 100)], # 64 blocks
-            'slabs':[(5, 400, 400)] # 80 slabs
-        },
-        'small': {
-            'shape':  (1400, 1400, 1400),
-            'buffer_size': 5.5 * ONE_GIG,
-            'blocks':[
-                (700, 700, 700)],
-            'slabs':[
-                ("auto", 1400, 1400), 
-                (5, 1400, 1400),
-                (175, 1400, 1400)]
-        },
+        # 'test':{  
+        #     'shape': (400, 400, 400),
+        #     'buffer_size': 2 * ONE_GIG,
+        #     'blocks':[(100, 100, 100)], # 64 blocks
+        #     'slabs':[(5, 400, 400)] # 80 slabs
+        # },
+        # 'small': {
+        #     'shape':  (1400, 1400, 1400),
+        #     'buffer_size': 5.5 * ONE_GIG,
+        #     'blocks':[
+        #         (700, 700, 700)],
+        #     'slabs':[
+        #         ("auto", 1400, 1400), 
+        #         (5, 1400, 1400),
+        #         (175, 1400, 1400)]
+        # },
         'big': {
             'shape': (3500, 3500, 3500),
             'buffer_size': 15 * ONE_GIG,
             'blocks':[
-                (350, 350, 350),
-                (500, 500, 500),
+                # (350, 350, 350),
+                # (500, 500, 500),
                 (875, 875, 875),],
             'slabs':[
-                (28, 3500, 3500),
+                # (28, 3500, 3500),
                 (50, 3500, 3500),]
         },
-        'big_brain':{
-            'shape': (3850, 3025, 3500),
-            'buffer_size': 15 * ONE_GIG,
-            'blocks': [
-                (770, 605, 700) # 125
-            ],
-            'slabs': [
-            ]
-        }
+        # 'big_brain':{
+        #     'shape': (3850, 3025, 3500),
+        #     'buffer_size': 15 * ONE_GIG,
+        #     'blocks': [
+        #         (770, 605, 700) # 125
+        #     ],
+        #     'slabs': [
+        #     ]
+        # }
     }
 
     for p in [paths["hdd_path"], paths["ssd_path"]]:
