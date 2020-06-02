@@ -371,9 +371,9 @@ if __name__ == "__main__":
 
     cases = load_config(args.config_cases)
     cases_to_run = get_cases_to_run(args, cases)
-    models = ["dask_vanilla_1thread", "dask_vanilla_nthreads", "plain_python", "keep"]
+    models = ["dask_vanilla_nthreads", "keep"] # "dask_vanilla_1thread", "plain_python",
     results = list()
-    for datadir, hardware in zip([paths["hdd_path"], paths["ssd_path"]], ['hdd', 'ssd']):
+    for datadir, hardware in zip([paths["ssd_path"]], ['ssd']):
         print("Working on ", datadir)
 
         inputfilepath = os.path.join(datadir, "original_array.hdf5")
