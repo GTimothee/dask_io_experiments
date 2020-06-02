@@ -195,7 +195,8 @@ def run_test(test, paths):
 
     datadir = getattr(test, 'hardware_path')
     merge_filepath = getattr(test, 'merge_filepath')
-    clean_directory(datadir, merge_filepath)
+    clean_directory(datadir)
+    os.remove(merged_filepath)
 
     sample_res = [
         params["hardware"], 
@@ -356,6 +357,8 @@ if __name__ == "__main__":
     }
 
     for p in [paths["hdd_path"], paths["ssd_path"]]:
+        clean_directory(p)
+
         for cuboid_name in ["test", "small", "big", "big_brain"]:
             fp = os.path.join(p, cuboid_name + ".hdf5")
             if os.path.isfile(fp):

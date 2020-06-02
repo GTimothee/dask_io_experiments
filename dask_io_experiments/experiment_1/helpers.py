@@ -4,13 +4,13 @@ import time
 from time import gmtime, strftime
 
 
-def clean_directory(datadir, merged_filepath):
+def clean_directory(datadir):
     workdir = os.getcwd()
     os.chdir(datadir)
     for filepath in glob.glob("[0-9]*_[0-9]*_[0-9]*.hdf5"):
         os.remove(filepath)
     os.chdir(workdir)
-    os.remove(merged_filepath)
+    
 
 
 def write_monitor_logs(_monitor, uid, paths):
@@ -71,7 +71,7 @@ columns = ['hardware',
     'success_run_merge'
 ]
 
-ONE_GIG = 1000000
+ONE_GIG = 1000000000
 
 def test_goodness_split(splitcase):
     """ Only for split_hdf5, not split_multiple_hdf5
