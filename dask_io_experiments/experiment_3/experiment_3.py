@@ -19,7 +19,7 @@ from dask.diagnostics import visualize
 
 from dask_io.optimizer.cases.case_config import Split, Merge
 from dask_io.optimizer.cases.case_creation import get_arr_chunks
-from dask_io.optimizer.configure import enable_clustering, disable_clustering, enable_keep
+from dask_io.optimizer.configure import enable_clustering, disable_clustering
 from dask_io.optimizer.utils.utils import ONE_GIG, CHUNK_SHAPES_EXP1
 from dask_io.optimizer.utils.get_arrays import get_dask_array_from_hdf5
 from dask_io.optimizer.utils.array_utils import inspect_h5py_file
@@ -169,7 +169,7 @@ if __name__ == "__main__":
         filename = os.path.join(outputimgdir, 'rechunkedasbuffer' + str(case_index) + '.png')
         reconstructed_array.visualize(optimize_graph=False, filename=filename)
 
-        enable_keep()
+        
         # with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
         #     with dask.config.set(scheduler='single-threaded'):
         #         reconstructed_array.compute()  # to apply keep algorithm

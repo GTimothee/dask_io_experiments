@@ -3,7 +3,7 @@ import shutil, time
 from time import gmtime, strftime
 import numpy as np
 
-ONE_GIG = 1000000
+ONE_GIG = 1000000000
 
 
 def write_csv(rows, columns, outdir):
