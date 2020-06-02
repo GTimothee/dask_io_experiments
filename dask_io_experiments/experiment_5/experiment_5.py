@@ -51,6 +51,12 @@ def get_arguments():
         help='Test if setup working.',
         default=False)
 
+    parser.add_argument('-o', '--overwrite', 
+        action='store_true', 
+        default=False,
+        dest='overwritearray',
+        help='Set to true to overwrite input array if already exists. Default is False.')
+
     return parser.parse_args()
 
 
@@ -377,7 +383,7 @@ if __name__ == "__main__":
         print("Working on ", datadir)
 
         inputfilepath = os.path.join(datadir, "original_array.hdf5")
-        if os.path.isfile(inputfilepath):
+        if os.path.isfile(inputfilepath) and args.overwritearray:
             os.remove(inputfilepath)
 
         # create 2 directories in datadir
