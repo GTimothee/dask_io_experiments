@@ -169,11 +169,6 @@ if __name__ == "__main__":
         filename = os.path.join(outputimgdir, 'rechunkedasbuffer' + str(case_index) + '.png')
         reconstructed_array.visualize(optimize_graph=False, filename=filename)
 
-        
-        # with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
-        #     with dask.config.set(scheduler='single-threaded'):
-        #         reconstructed_array.compute()  # to apply keep algorithm
-
         task = apply_store(B, O, R, volumestokeep, reconstructed_array, outputimgdir, case_index)
 
         # computation
@@ -181,5 +176,5 @@ if __name__ == "__main__":
             with dask.config.set(scheduler='single-threaded'):
                 task.compute()
             visualize([prof, rprof, cprof])
-        # # check_outputs()
+        # check_outputs()
         
