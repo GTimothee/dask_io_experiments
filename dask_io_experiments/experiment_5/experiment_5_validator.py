@@ -50,6 +50,7 @@ def get_arguments():
 
 def run_test_case(run):
     R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
+    print(f'Current run --- \nR: {R} \nO: {O} \nI: {I} \nB: {B} \n')
     d_arrays, d_regions = compute_zones(B, O, R, volumestokeep)
 
 def run_case_1(run):
