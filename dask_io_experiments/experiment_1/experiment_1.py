@@ -171,9 +171,32 @@ def run_test(test, paths):
         disable_clustering()
 
     flush_cache()
-    arr = splitcase.get()
-    tsplit, diagnostics_split, monitor_split = run_to_hdf5(arr, params, uid)
-    splitcase.clean()
+    try:
+        arr = splitcase.get()
+        tsplit, diagnostics_split, monitor_split = run_to_hdf5(arr, params, uid)
+    except Exception as e: 
+        print(e)
+        return [
+            params["hardware"], 
+            params["cuboid_name"],
+            params["array_shape"],
+            params["chunk_type"],
+            params["chunk_shape"],
+            params["optimized"],
+            params["buffer_size"],
+            params["nthreads"],
+            None,
+            None,
+            None, 
+            None,
+            None,
+            None,
+            None,
+            None
+        ]
+    finally:
+        splitcase.clean()
+
     R = cuboids[params["cuboid_name"]]['shape']
     I = splitcase.chunks_shape
     print(f'R: {R}')
@@ -186,9 +209,32 @@ def run_test(test, paths):
     print(f'[Split] Find the monitor output file at {monitor_split}')
 
     flush_cache()
-    arr = mergecase.get()
-    tmerge, diagnostics_merge, monitor_merge = run_to_hdf5(arr, params, uid)
-    mergecase.clean()
+    try:
+        arr = mergecase.get()
+        tmerge, diagnostics_merge, monitor_merge = run_to_hdf5(arr, params, uid)
+    except Exception as e: 
+        print(e)
+        return [
+            params["hardware"], 
+            params["cuboid_name"],
+            params["array_shape"],
+            params["chunk_type"],
+            params["chunk_shape"],
+            params["optimized"],
+            params["buffer_size"],
+            params["nthreads"],
+            round(tsplit, 4),
+            None,
+            None, 
+            None,
+            None,
+            None,
+            None,
+            None
+        ]
+    finally:
+        mergecase.clean()
+
     success_run_merge = verify_results_merge(getattr(test, 'cuboid_filepath'), getattr(test, 'merge_filepath'))
     print(f'[Merge] Find the diagnostics output file at {diagnostics_merge}')
     print(f'[Merge] Find the monitor output file at {monitor_merge}')
