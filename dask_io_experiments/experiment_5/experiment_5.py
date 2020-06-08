@@ -215,8 +215,8 @@ def run_case_1(run, inputfilepath, indir_path, outdir_path, results, hardware, m
     print(f'Input aggregate shape: {lambd}')
 
     memorycases = [
-        [(1,1,lambd[2]), [1]],
-        [(1,lambd[1],lambd[2]), [1,2,3]],
+        #[(1,1,lambd[2]), [1]],
+        #[(1,lambd[1],lambd[2]), [1,2,3]],
         [(lambd[0],lambd[1],lambd[2]), list(range(1,8))]
     ]
     print(f'Buffer shapes to test: {memorycases}')
