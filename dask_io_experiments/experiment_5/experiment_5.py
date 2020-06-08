@@ -193,7 +193,7 @@ def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep):
     return t
 
 
-def rechunk_vanilla_dask(indir_path, outdir_path, nthreads):
+def rechunk_vanilla_dask(indir_path, outdir_path, nthreads, R, O):
     """ Rechunk using vanilla dask
     """
     in_arrays = load_input_files(indir_path)
@@ -247,9 +247,9 @@ def rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep):
     """ Rechunk data chunks stored into datadir using a given model.
     """
     if model == "dask_vanilla_1thread":
-        return rechunk_vanilla_dask(indir_path, outdir_path, 1)
+        return rechunk_vanilla_dask(indir_path, outdir_path, 1, R, O)
     elif model == "dask_vanilla_nthreads":
-        return rechunk_vanilla_dask(indir_path, outdir_path, None)
+        return rechunk_vanilla_dask(indir_path, outdir_path, None, R, O)
     elif model == "keep":
         return rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep)
     else:  # use plain python 
