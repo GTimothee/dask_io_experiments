@@ -165,9 +165,9 @@ def apply_store(B, O, R, volumestokeep, reconstructed_array):
     return da.store(sources, targets, regions=regions, compute=False), out_files
 
 
-def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep):
+def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep, rechunk_input):
     case = Merge('samplename')
-    case.merge_hdf5_multiple(indir_path, store=False)
+    case.merge_hdf5_multiple(indir_path, store=False, rechunk_input=rechunk_input)
     reconstructed_array = case.get()
     print("Merged array: ", reconstructed_array)
     print("Logically rechunking merged array to buffer shape...")
@@ -243,15 +243,15 @@ def rechunk_vanilla_dask(indir_path, outdir_path, nthreads, R, O):
     return t 
 
 
-def rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep):
+def rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep, rechunk_input):
     """ Rechunk data chunks stored into datadir using a given model.
     """
     if model == "dask_vanilla_1thread":
-        return rechunk_vanilla_dask(indir_path, outdir_path, 1, R, O)
+        return rechunk_vanilla_dask(indir_path, outdir_path, 1, R, O,)
     elif model == "dask_vanilla_nthreads":
         return rechunk_vanilla_dask(indir_path, outdir_path, None, R, O)
     elif model == "keep":
-        return rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep)
+        return rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep, rechunk_input)
     else:  # use plain python 
         return rechunk_plain_python(indir_path, outdir_path, B, O, I, R)
 
@@ -286,7 +286,12 @@ def verify_results(outdir_path, original_array_path, R, O):
 
 def run_test_case(run, inputfilepath, indir_path, outdir_path, results, hardware, models):
     R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
-    execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep)
+    execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep, None)
+
+
+def run_case_2(run, inputfilepath, indir_path, outdir_path, results, hardware, models):
+    R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
+    execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep, rechunk_input=B)
 
 
 def run_case_1(run, inputfilepath, indir_path, outdir_path, results, hardware, models):
@@ -322,7 +327,7 @@ def run_case_1(run, inputfilepath, indir_path, outdir_path, results, hardware, m
             print(f"B does not define a partition of R, modify run in config file... Aborting.")
             continue
         else:
-            execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep)
+            execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep, None)
 
 
 def create_test_array(filepath, shape):
@@ -345,7 +350,7 @@ def create_test_array(filepath, shape):
         print("[input array creation] Input file already exists. Did nothing.")
 
 
-def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep):
+def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep, rechunk_input):
     print(f'Starting execution...')
     print(f'R={R}, \n\tO={O}, \n\tI={I}, \n\tB={B}, \n\tvolumestokeep={volumestokeep}')
     create_test_array(inputfilepath, R)  # if not already created
@@ -356,7 +361,7 @@ def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, m
         print(f'Rechunking with model "{model}"...')
         flush_cache()
         try:
-            t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep)
+            t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep, rechunk_input)
             print(f'Rechunk done.')
             print("Processing time: ", t, " seconds. \nVerifying results (sanity check)...")
             success_run = verify_results(outdir_path, inputfilepath, R, O)
@@ -499,6 +504,8 @@ if __name__ == "__main__":
                 execute_run = run_test_case
             elif case_name == "case 1":
                 execute_run = run_case_1
+            elif case_name == "case 2":
+                execute_run = run_case_2
             else:
                 print("not supported yet")
                 continue
