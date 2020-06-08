@@ -48,6 +48,27 @@ def get_arguments():
     return parser.parse_args()
 
 
+def get_cases_to_run(args, cases):
+    all_cases_names = list(cases.keys())
+    if args.testmode:
+        return ["case test"]
+    elif args.cases != None:
+        cases_to_run = list()
+        for i in args.cases:
+            if isinstance(i, int):
+                casename = "case " + str(i)
+                if casename in all_cases_names:
+                    cases_to_run.append(casename)
+            else:
+                print("Cases selected by command line should be integers.")
+        if len(cases_to_run) == 0:
+            raise ValueError("No case to run. Aborting.")
+            sys.exit(1)
+        return cases_to_run 
+    else:
+        return ["case 1", "case 2", "case 3"]
+
+
 def run_test_case(run):
     R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
     print(f'Current run --- \nR: {R} \nO: {O} \nI: {I} \nB: {B} \n')
