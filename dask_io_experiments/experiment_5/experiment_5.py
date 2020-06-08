@@ -196,12 +196,12 @@ def verify_results(outdir_path, original_array_path, R, O):
     return all_true
 
 
-def run_test_case(run, inputfilepath, indir_path, outdir_path, results, hardware, model):
+def run_test_case(run, inputfilepath, indir_path, outdir_path, results, hardware, models):
     R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
-    execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, model)
+    execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models)
 
 
-def run_case_1(run, inputfilepath, indir_path, outdir_path, results, hardware, model):
+def run_case_1(run, inputfilepath, indir_path, outdir_path, results, hardware, models):
     def get_input_aggregate(O, I):
         lambd = list()
         dimensions = len(O)
@@ -234,10 +234,10 @@ def run_case_1(run, inputfilepath, indir_path, outdir_path, results, hardware, m
             print(f"B does not define a partition of R, modify run in config file... Aborting.")
             continue
 
-        execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, model)
+        execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models)
 
 
-def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, model):
+def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models):
     print(f'Starting execution...')
     print(f'R={R}, \n\tO={O}, \n\tI={I}, \n\tB={B}, \n\tvolumestokeep={volumestokeep}')
     create_test_array(inputfilepath, R)  # if not already created
@@ -401,7 +401,7 @@ if __name__ == "__main__":
                 print(f'Cleaning split files directory before splitting.')
                 clean_directory(indir_path)
                 print(f'Done.')
-                execute_run(run, inputfilepath, indir_path, outdir_path, results, hardware, model)
+                execute_run(run, inputfilepath, indir_path, outdir_path, results, hardware, models)
 
     write_csv(results, paths["outdir"])
                     
