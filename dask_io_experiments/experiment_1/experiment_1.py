@@ -194,7 +194,7 @@ def run_test(test, paths):
     print(f'[Merge] Find the monitor output file at {monitor_merge}')
 
     datadir = getattr(test, 'hardware_path')
-    merge_filepath = getattr(test, 'merge_filepath')
+    merged_filepath = getattr(test, 'merge_filepath')
     clean_directory(datadir)
     os.remove(merged_filepath)
 
