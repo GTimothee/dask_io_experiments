@@ -86,7 +86,7 @@ def write_csv(rows, outdir):
         'sucess_run'
     ]
 
-    csv_path = os.path.join(outdir, 'exp1_' + strftime("%Y-%m-%d %H:%M:%S", gmtime()) + '_out.csv')
+    csv_path = os.path.join(outdir, 'exp5_' + strftime("%Y-%m-%d %H:%M:%S", gmtime()) + '_out.csv')
     print(f'Creating csv file at {csv_path}.')
     csv_out, writer = create_csv_file(csv_path, columns, delimiter=',', mode='w+')
     for row in rows: 
