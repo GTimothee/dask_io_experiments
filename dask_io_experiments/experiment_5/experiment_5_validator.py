@@ -55,12 +55,9 @@ def get_cases_to_run(args, cases):
     elif args.cases != None:
         cases_to_run = list()
         for i in args.cases:
-            if isinstance(i, int):
-                casename = "case " + str(i)
-                if casename in all_cases_names:
-                    cases_to_run.append(casename)
-            else:
-                print("Cases selected by command line should be integers.")
+            casename = "case " + i
+            if casename in all_cases_names:
+                cases_to_run.append(casename)
         if len(cases_to_run) == 0:
             raise ValueError("No case to run. Aborting.")
             sys.exit(1)
@@ -159,9 +156,13 @@ if __name__ == "__main__":
         elif case_name == "case 1":
             execute_run = run_case_1
             print(f'case 1')
+        elif case_name == "case 2":
+            print(f'case 2')
+            print("not supported yet")
+            continue
         else:
             print("not supported yet")
             continue
 
-        for run in runs:
-            execute_run(run)
+        # for run in runs:
+        #     execute_run(run)
