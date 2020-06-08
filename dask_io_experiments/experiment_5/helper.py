@@ -91,24 +91,7 @@ def write_csv(rows, outdir):
     csv_out.close()
 
 
-def create_test_array(filepath, shape):
-    """ Create input dask array if does not exist.
 
-    Array infos: 
-    ------------
-    - no physical chunks
-    - drawn from normal distribution.
-    - Dataset key = /data
-    - Dtype = float16
-    """
-    disable_clustering()
-    if not os.path.isfile(filepath):
-        print("Creating input array for the experiment...")
-        arr = create_random_dask_array(shape, distrib='normal', dtype=np.float16)
-        save_to_hdf5(arr, filepath, physik_cs=None, key='/data', compression=None)
-        print(f'Done.')
-    else:
-        print("[input array creation] Input file already exists. Did nothing.")
 
 
 
