@@ -321,8 +321,8 @@ def run_case_1(run, inputfilepath, indir_path, outdir_path, results, hardware, m
         if not all(r == 0 for r in remainders):
             print(f"B does not define a partition of R, modify run in config file... Aborting.")
             continue
-
-        execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep)
+        else:
+            execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep)
 
 
 def create_test_array(filepath, shape):
@@ -355,24 +355,27 @@ def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, m
     for model in models:
         print(f'Rechunking with model "{model}"...')
         flush_cache()
-        t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep)
-        print(f'Rechunk done.')
-        print("Processing time: ", t, " seconds. \nVerifying results (sanity check)...")
-        success_run = verify_results(outdir_path, inputfilepath, R, O)
-        print(f'Done. Sanity check successful: {success_run}')
-        clean_directory(outdir_path)
+        try:
+            t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep)
+            print(f'Rechunk done.')
+            print("Processing time: ", t, " seconds. \nVerifying results (sanity check)...")
+            success_run = verify_results(outdir_path, inputfilepath, R, O)
+            print(f'Done. Sanity check successful: {success_run}')
+            clean_directory(outdir_path)
 
-        results.append([
-            hardware, 
-            case_name,
-            R, 
-            O, 
-            I, 
-            B, 
-            model,
-            round(t, 4),
-            success_run
-        ])
+            results.append([
+                hardware, 
+                case_name,
+                R, 
+                O, 
+                I, 
+                B, 
+                model,
+                round(t, 4),
+                success_run
+            ])
+        except Exception as e:
+            print(e, '\nAn error occured during execution of case')
 
 def get_arguments():
     """ Get arguments from console command.

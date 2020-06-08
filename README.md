@@ -49,3 +49,6 @@ Experiment 5:
 ``` python dask_io_experiments/experiment_4/experiment_5.py --help ```
 
 ``` python dask_io_experiments/experiment_5/experiment_5.py -t "dask_io_experiments/pathsconfig.json" -n 1 ```
+
+Run cases logic validator for experiment 5: 
+``` python dask_io_experiments/experiment_5/experiment_5_validator.py dask_io_experiments/pathsconfig.json ```
