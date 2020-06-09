@@ -26,20 +26,31 @@ def custom_imports(paths):
 
 def get_arguments():
     parser = argparse.ArgumentParser(description="In this experiment we test vanilla dask to split and merge a multidimensional array stored in an hdf5 file.")
-    parser.add_argument('config_filepath', action='store', 
+    parser.add_argument('config_filepath', 
+        action='store', 
         type=str, 
         help='Path to configuration file containing paths of third parties libraries, projects, data directories, etc. See README for more information.')
-    parser.add_argument('-t', '--testmode', action='store_true', default=False,
+    parser.add_argument('-t', '--testmode', 
+        action='store_true', 
+        default=False,
         dest='testmode',
         help='Test if setup working.')
-    parser.add_argument('-o', '--overwrite', action='store_true', default=False,
+    parser.add_argument('-o', '--overwrite', 
+        action='store_true', 
+        default=False,
         dest='overwritearray',
         help='Set to true to overwrite input array if already exists. Default is False.')
-    parser.add_argument('-n', '--nb_repetitions', action='store', 
+    parser.add_argument('-n', '--nb_repetitions', 
+        action='store', 
         type=int, 
         dest='nb_repetitions',
         help='Number of repetitions for each case of the experiment. Default is 5.',
         default=5)
+    parser.add_argument('--hdf5', 
+        action='store_false', 
+        default=True,
+        dest='split_files',
+        help='by default input array is split into different files, if --hdf5 set then split into one hdf5 file in several datasets')
     return parser.parse_args()
 
 
@@ -86,10 +97,20 @@ def run(arr):
     return time.time() - t
 
 
-def split(datadir, filepath, cs):
+def split(datadir, filepath, cs, split_files=True):
+    """ 
+    Arguments: 
+    ----------
+        split_files: if true then perform a split into multiple files, if false then perform a split inside one hdf5 file
+    """
     print("Splitting...")
     splitcase = Split(filepath, chunk_shapes[cs])
-    splitcase.split_hdf5_multiple(datadir, nb_blocks=None)
+
+    if split_files:
+        splitcase.split_hdf5_multiple(datadir, nb_blocks=None)
+    else:
+        out_filepath = os.path.join(datadir, "split.hdf5")
+        splitcase.split_hdf5(out_filepath, nb_blocks=None)
     arr = splitcase.get()
     try:
         tsplit = run(arr)
@@ -180,16 +201,20 @@ if __name__ == "__main__":
             for cs in shapes:
                 flush_cache()
                 print(f'Splitting original array with chunk shape: {cs}...')
-                t1 = split(datadir, filepath, cs)
+                t1 = split(datadir, filepath, cs, split_files=args.split_files)
                 print("Time to split: ", t1, "seconds.")
                 flush_cache()
-                print(f'Merging splits back...')
-                t2, merged_filepath = merge(datadir)
-                print("Time to merge: ", t2, "seconds")
-                rows.append([dirtype, chunk_shapes[cs], t1, t2])
+
+                if args.split_files:
+                    print(f'Merging splits back...')
+                    t2, merged_filepath = merge(datadir)
+                    print("Time to merge: ", t2, "seconds")
+                    rows.append([dirtype, chunk_shapes[cs], t1, t2])
+                    os.remove(merged_filepath)
+                else:
+                    rows.append([dirtype, chunk_shapes[cs], t1, 0])
                                 
                 clean_directory(datadir)
-                os.remove(merged_filepath)
             
             os.remove(filepath)
     
