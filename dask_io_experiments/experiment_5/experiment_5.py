@@ -473,7 +473,7 @@ if __name__ == "__main__":
     })
 
     cases, cases_to_run = get_cases(args)
-    models = ["dask_vanilla_nthreads", "keep"]  # "dask_vanilla_1thread", "plain_python",
+    models = ["keep"]  # "dask_vanilla_1thread", "plain_python",
     
     results = list()
     for datadir, hardware in zip([paths["ssd_path"]], ['ssd']):
