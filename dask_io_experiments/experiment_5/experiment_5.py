@@ -243,9 +243,9 @@ def rechunk_vanilla_dask(indir_path, outdir_path, nthreads, R, O):
 def rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep, rechunk_input):
     """ Rechunk data chunks stored into datadir using a given model.
     """
-    if model == "dask_vanilla_1thread":
+    if model == "vanilla1":
         return rechunk_vanilla_dask(indir_path, outdir_path, 1, R, O,)
-    elif model == "dask_vanilla_nthreads":
+    elif model == "vanillan":
         return rechunk_vanilla_dask(indir_path, outdir_path, None, R, O)
     elif model == "keep":
         return rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep, rechunk_input)
@@ -281,17 +281,17 @@ def verify_results(outdir_path, original_array_path, R, O):
     return all_true
 
 
-def run_test_case(run, inputfilepath, indir_path, outdir_path, results, hardware, models):
+def run_test_case(run, inputfilepath, indir_path, outdir_path, results, hardware, model):
     R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
-    execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep, None)
+    execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, model, volumestokeep, None)
 
 
-def run_case_2(run, inputfilepath, indir_path, outdir_path, results, hardware, models):
+def run_case_2(run, inputfilepath, indir_path, outdir_path, results, hardware, model):
     R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
-    execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep, rechunk_input=B)
+    execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, model, volumestokeep, rechunk_input=B)
 
 
-def run_case_1(run, inputfilepath, indir_path, outdir_path, results, hardware, models):
+def run_case_1(run, inputfilepath, indir_path, outdir_path, results, hardware, model):
     def get_input_aggregate(O, I):
         lambd = list()
         dimensions = len(O)
@@ -324,7 +324,7 @@ def run_case_1(run, inputfilepath, indir_path, outdir_path, results, hardware, m
             print(f"B does not define a partition of R, modify run in config file... Aborting.")
             continue
         else:
-            execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep, None)
+            execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, model, volumestokeep, None)
 
 
 def create_test_array(filepath, shape):
@@ -347,37 +347,35 @@ def create_test_array(filepath, shape):
         print("[input array creation] Input file already exists. Did nothing.")
 
 
-def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, models, volumestokeep, rechunk_input):
+def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, model, volumestokeep, rechunk_input):
     print(f'Starting execution...')
     print(f'R={R}, \n\tO={O}, \n\tI={I}, \n\tB={B}, \n\tvolumestokeep={volumestokeep}')
     create_test_array(inputfilepath, R)  # if not already created
     split(inputfilepath, I, indir_path)  # initially split the input array
 
-    random.shuffle(models)
-    for model in models:
-        print(f'Rechunking with model "{model}"...')
-        flush_cache()
-        try:
-            t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep, rechunk_input)
-            print(f'Rechunk done.')
-            print("Processing time: ", t, " seconds. \nVerifying results (sanity check)...")
-            success_run = verify_results(outdir_path, inputfilepath, R, O)
-            print(f'Done. Sanity check successful: {success_run}')
-            clean_directory(outdir_path)
+    print(f'Rechunking with model "{model}"...')
+    flush_cache()
+    try:
+        t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep, rechunk_input)
+        print(f'Rechunk done.')
+        print("Processing time: ", t, " seconds. \nVerifying results (sanity check)...")
+        success_run = verify_results(outdir_path, inputfilepath, R, O)
+        print(f'Done. Sanity check successful: {success_run}')
+        clean_directory(outdir_path)
 
-            results.append([
-                hardware, 
-                case_name,
-                R, 
-                O, 
-                I, 
-                B, 
-                model,
-                round(t, 4),
-                success_run
-            ])
-        except Exception as e:
-            print(e, '\nAn error occured during execution of case')
+        results.append([
+            hardware, 
+            case_name,
+            R, 
+            O, 
+            I, 
+            B, 
+            model,
+            round(t, 4),
+            success_run
+        ])
+    except Exception as e:
+        print(e, '\nAn error occured during execution of case')
 
 def get_arguments():
     """ Get arguments from console command.
@@ -420,6 +418,12 @@ def get_arguments():
         default=False,
         dest='overwritearray',
         help='Set to true to overwrite input array if already exists. Default is False.')
+
+    parser.add_argument('-m', '--model',
+        type=str,
+        action='store',
+        dest='model',
+        default='keep')
 
     return parser.parse_args()
 
@@ -473,7 +477,8 @@ if __name__ == "__main__":
     })
 
     cases, cases_to_run = get_cases(args)
-    models = ["keep"]  # "dask_vanilla_1thread", "plain_python",
+    # models = ["keep"]  # "dask_vanilla_1thread", "plain_python",
+    print("model to run:", args.model)
     
     results = list()
     for datadir, hardware in zip([paths["ssd_path"]], ['ssd']):
@@ -516,7 +521,7 @@ if __name__ == "__main__":
                 print(f'Cleaning split files directory before splitting.')
                 clean_directory(indir_path)
                 print(f'Done.')
-                execute_run(run, inputfilepath, indir_path, outdir_path, results, hardware, models)
+                execute_run(run, inputfilepath, indir_path, outdir_path, results, hardware, args.model)
 
     write_csv(results, paths["outdir"])
                     
