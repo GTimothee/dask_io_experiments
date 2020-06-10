@@ -108,6 +108,17 @@ def get_overlap_subarray(hypercube1, hypercube2):
     print(f"Overlap subarray : {subarray_lowercorner[0]}:{subarray_uppercorner[0]}, {subarray_lowercorner[1]}:{subarray_uppercorner[1]}, {subarray_lowercorner[2]}:{subarray_uppercorner[2]}")
     return (subarray_lowercorner, subarray_uppercorner)
 
+
+def clean_directory(dirpath):
+    """ Remove intermediary files from split/rechunk.
+    """
+    workdir = os.getcwd()
+    os.chdir(dirpath)
+    for filename in glob.glob("[0-9]*_[0-9]*_[0-9]*.hdf5"):
+        os.remove(filename)
+    os.chdir(workdir)
+
+
 def rechunk_plain_python(indir_path, outdir_path, B, O, I, R):
     """ Naive rechunk implementation in plain python
     """
@@ -129,4 +140,6 @@ def rechunk_plain_python(indir_path, outdir_path, B, O, I, R):
             if hypercubes_overlap(involume, outvolume):
                 write_to_outfile(involume, outvolume, data, outfiles_partition, outdir_path, O)
         clean_files()
-    return time.time() - t
+    t = time.time() - t
+    clean_directory(outdir_path)
+    return t
