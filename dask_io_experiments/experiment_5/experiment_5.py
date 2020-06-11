@@ -384,7 +384,7 @@ def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, m
             B, 
             model,
             None,
-            success_run
+            False
         ])
     finally:
         clean_directory(indir_path)

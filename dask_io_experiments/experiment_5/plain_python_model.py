@@ -139,7 +139,6 @@ def rechunk_plain_python(indir_path, outdir_path, B, O, I, R):
         for outvolume in outfiles_volumes.values():
             if hypercubes_overlap(involume, outvolume):
                 write_to_outfile(involume, outvolume, data, outfiles_partition, outdir_path, O)
-        clean_files()
+        clean_files()  # close opened files
     t = time.time() - t
-    clean_directory(outdir_path)
     return t
