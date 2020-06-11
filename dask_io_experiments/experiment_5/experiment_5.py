@@ -147,7 +147,7 @@ def apply_store(B, O, R, volumestokeep, reconstructed_array):
         out_files.append(out_file)
         
         # create dset
-        dset = out_file.create_dataset('/data', shape=O)
+        dset = out_file.create_dataset('/data', shape=O, dtype=np.float16)
         
         for i, st in enumerate(sliceslistoflist):
             tmp_array = reconstructed_array[st[0], st[1], st[2]]
@@ -208,7 +208,7 @@ def rechunk_vanilla_dask(indir_path, outdir_path, nthreads, R, O):
             for k in range(outfiles_partition[2]):
                 out_filename = f'{i}_{j}_{k}.hdf5'
                 out_file = h5py.File(os.path.join(outdir_path, out_filename), 'w')
-                dset = out_file.create_dataset('/data', shape=O)
+                dset = out_file.create_dataset('/data', shape=O, dtype=np.float16)
 
                 tmp_array = reconstructed_array[i*O[0]: (i+1)*O[0], j*O[1]: (j+1)*O[1], k*O[2]: (k+1)*O[2]]
                 print(f'{i*O[0]}: {(i+1)*O[0]}, {j*O[1]}: {(j+1)*O[1]}, {k*O[2]}: {(k+1)*O[2]}')
