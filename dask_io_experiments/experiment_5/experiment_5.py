@@ -30,7 +30,7 @@ def load_input_files(input_dirpath, dataset_key='/data'):
 def get_cases_to_run(args, cases):
     all_cases_names = list(cases.keys())
     if args.testmode:
-        return ["case test"]
+        return ["case2 test"] # ["case test", "case2 test"]
     elif args.cases != None:
         cases_to_run = list()
         for i in args.cases:
@@ -517,6 +517,8 @@ if __name__ == "__main__":
                 continue 
             elif case_name == "case test":
                 execute_run = run_test_case
+            elif case_name == "case2 test":
+                execute_run = run_case_2
             elif case_name == "case 1":
                 execute_run = run_case_1
             elif case_name == "case 2":
