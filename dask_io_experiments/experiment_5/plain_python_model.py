@@ -31,7 +31,7 @@ def write_to_outfile(involume, outvolume, indset, outfiles_partition, outdir_pat
     if not "/data" in f.keys():
         # print('[debug] No dataset, creating dataset')
         null_arr = np.zeros(O)
-        outdset = f.create_dataset("/data", O, data=null_arr)  # initialize an empty dataset
+        outdset = f.create_dataset("/data", O, data=null_arr, dtype=np.float16)  # initialize an empty dataset
     else:
         # print('[debug] Dataset exists')
         outdset = f["/data"]

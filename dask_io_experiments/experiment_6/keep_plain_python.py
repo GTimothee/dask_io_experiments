@@ -31,7 +31,6 @@ def read(buffer, infiles_volumes, infiles_paths, I):
             fp = infiles_paths[involume.index]
             arr = get_dask_array_from_hdf5(fp, '/data', logic_cs=I)
 
-
 def split_data(data):
     pass
 
@@ -90,8 +89,8 @@ def get_arguments():
 def init_dirs(paths):
     """ Create data directories and clean them if already exist
     """
-    in_dir = os.path.join(paths["ssd_path"], "input_dir")
-    out_dir = os.path.join(paths["ssd_path"], "output_dir")
+    in_dir = os.path.join(paths["ssd_path"], "input_files")
+    out_dir = os.path.join(paths["ssd_path"], "output_files")
 
     workdir = os.getcwd()
     for dirpath in [in_dir, out_dir]:

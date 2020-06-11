@@ -361,7 +361,6 @@ def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, m
         print("Processing time: ", t, " seconds. \nVerifying results (sanity check)...")
         success_run = verify_results(outdir_path, inputfilepath, R, O)
         print(f'Done. Sanity check successful: {success_run}')
-        clean_directory(outdir_path)
 
         results.append([
             hardware, 
@@ -376,6 +375,20 @@ def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, m
         ])
     except Exception as e:
         print(e, '\nAn error occured during execution of case')
+        results.append([
+            hardware, 
+            case_name,
+            R, 
+            O, 
+            I, 
+            B, 
+            model,
+            None,
+            success_run
+        ])
+    finally:
+        clean_directory(indir_path)
+        clean_directory(outdir_path)
 
 def get_arguments():
     """ Get arguments from console command.
