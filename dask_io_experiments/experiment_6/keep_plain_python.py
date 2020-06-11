@@ -4,12 +4,32 @@ import csv
 
 def get_buffers(R, B):
     buffers_partition = get_blocks_shape(R, B)
-    buffers_volumes = get_named_volumes(buffers_partition, B)
-    pass 
+    return get_named_volumes(buffers_partition, B)
 
 
-def read(buffer, in_dir):
-    pass
+def find_all_infilepaths(in_dir):
+    """ return a dictionary associating numeric_index -> filepath
+    """
+    workdir = os.getcwd()
+    os.chdir(in_dir)
+
+    infiles_paths = dict()
+    for infilename in glob.glob("[0-9]*_[0-9]*_[0-9]*.hdf5"):
+        pos = infilename.split('_')
+        pos[-1] = pos[-1].split('.')[0]
+        pos = tuple(list(map(lambda s: int(s), pos)))
+        num_pos = _3d_to_numeric
+        infiles_paths[num_pos] = os.path.join(in_dir, infilename)
+
+    os.chdir(workdir)
+    return infiles_paths
+
+
+def read(buffer, infiles_volumes, infiles_paths, I):
+    for involume in infiles_volumes:
+        if hypercubes_overlap(involume, buffer):
+            fp = infiles_paths[involume.index]
+            arr = get_dask_array_from_hdf5(fp, '/data', logic_cs=I)
 
 
 def split_data(data):
@@ -20,19 +40,30 @@ def keep(data_to_keep, cache):
     pass
 
 
-def write(data_to_write, out_dir):
-    pass
+def write(data_to_write, outvolumes, out_dir, outfiles_volumes, outfiles_partition, O):
+    for involume in data_to_write:
+        for outvolume in outvolumes: 
+            if hypercubes_overlap(involume, outvolume):
+                write_to_outfile(involume, outvolume, data, outfiles_partition, out_dir, O)
+                continue # such volume should be written only once
 
 
 def rechunk(in_dir, out_dir, R, I, O, B):
+    outfiles_partition = get_blocks_shape(R, O)
+    outfiles_volumes = get_named_volumes(outfiles_partition, O)
+    infiles_partition = get_blocks_shape(R, O)
+    infiles_volumes = get_named_volumes(infiles_partition, O)
+
+    infiles_paths = find_all_infilepaths(in_dir)
+
     buffers = get_buffers(R, B)
     cache = dict()
     t = time.time()
     for buffer in buffers:
-        data = read(buffer, in_dir) 
+        data = read(buffer, infiles_volumes, infiles_paths, I) 
         data_to_write, data_to_keep = split_data(data)
         keep(data_to_keep, cache)
-        write(data_to_write, out_dir)
+        write(data_to_write, outvolumes, out_dir, outfiles_volumes, outfiles_partition, O)
     return time.time() - t 
 
 
@@ -130,15 +161,14 @@ if __name__ == "__main__":
         R, I, O, B, volumes_to_keep = case["R"], case["I"], case["O"], case["B"], case["volumestokeep"]
         create_input_files(in_dir, R, I)
 
-        # process_time = rechunk(in_dir, out_dir, R, I, O, B)
-        # results.append([
-        #     hardware,
-        #     R, 
-        #     O, 
-        #     I, 
-        #     B,
-        #     process_time
-        # ])
+        process_time = rechunk(in_dir, out_dir, R, I, O, B)
+        results.append([
+            R, 
+            O, 
+            I, 
+            B,
+            process_time
+        ])
 
         clean_chunk_files(in_dir)
         clean_chunk_files(out_dir)
