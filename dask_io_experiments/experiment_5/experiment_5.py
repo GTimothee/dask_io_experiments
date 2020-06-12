@@ -151,7 +151,7 @@ def apply_store(B, O, R, volumestokeep, reconstructed_array):
         
         for i, st in enumerate(sliceslistoflist):
             tmp_array = reconstructed_array[st[0], st[1], st[2]]
-            print("Output array shape: ", tmp_array.shape)
+            print("Volume to be stored shape: ", tmp_array.shape)
             reg = d_regions[outfile_index][i]
             tmp_array = tmp_array.rechunk(tmp_array.shape)
             
@@ -350,6 +350,9 @@ def create_test_array(filepath, shape):
 def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, model, volumestokeep, rechunk_input):
     print(f'Starting execution...')
     print(f'R={R}, \n\tO={O}, \n\tI={I}, \n\tB={B}, \n\tvolumestokeep={volumestokeep}')
+
+    if "test" in case_name:
+        os.remove(inputfilepath)
     create_test_array(inputfilepath, R)  # if not already created
     split(inputfilepath, I, indir_path)  # initially split the input array
 
