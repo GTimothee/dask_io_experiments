@@ -121,11 +121,13 @@ def run_to_hdf5(arr, params, uid):
 
     
     def _compute_arr(arr):
-        if params["nthreads"] == 1:
-            print(f'Using the `single-threaded` scheduler...')
-            with dask.config.set(scheduler='single-threaded'):
-                return _compute(arr)
-        else:
+        # if params["nthreads"] == 1:
+        #     print(f'Using the `single-threaded` scheduler...')
+        #     with dask.config.set(scheduler='single-threaded'):
+        #         return _compute(arr)
+        # else:
+        #     return _compute(arr)
+        with dask.config.set(scheduler='single-threaded'):
             return _compute(arr)
 
     
@@ -382,13 +384,14 @@ if __name__ == "__main__":
         # },
         'big': {
             'shape': (3500, 3500, 3500),
-            'buffer_size': 15 * ONE_GIG,
+            'buffer_size': 10 * ONE_GIG,
             'blocks':[
-                (350, 350, 350),
-                (500, 500, 500),
-                (875, 875, 875),],
+                # (350, 350, 350),
+                # (500, 500, 500),
+                (875, 875, 875),
+            ],
             'slabs':[
-                (28, 3500, 3500),
+                # (28, 3500, 3500),
                 (50, 3500, 3500),]
         },
         # 'big_brain':{
@@ -405,7 +408,7 @@ if __name__ == "__main__":
     for p in [paths["hdd_path"], paths["ssd_path"]]:
         clean_directory(p)
 
-        for cuboid_name in ["test", "small", "big", "big_brain"]:
+        for cuboid_name in ["big"]: # ["test", "small", "big", "big_brain"]:
             fp = os.path.join(p, cuboid_name + ".hdf5")
             if os.path.isfile(fp):
                 print(f'Removing file {fp}')
