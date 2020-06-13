@@ -352,7 +352,8 @@ def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, m
     print(f'R={R}, \n\tO={O}, \n\tI={I}, \n\tB={B}, \n\tvolumestokeep={volumestokeep}')
 
     if "test" in case_name:
-        os.remove(inputfilepath)
+        if os.path.isfile(inputfilepath):
+            os.remove(inputfilepath)
     create_test_array(inputfilepath, R)  # if not already created
     split(inputfilepath, I, indir_path)  # initially split the input array
 
