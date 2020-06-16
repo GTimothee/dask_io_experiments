@@ -1,6 +1,7 @@
 import numpy as np
-import os 
+import os
 import h5py
+import sys
 
 
 def create_array(input_filepath, shape):
@@ -22,7 +23,7 @@ def create_array(input_filepath, shape):
 
 def split_to_hdf5(arr, f, nb_blocks=None):
     """ Split an array given its chunk shape. Output is a hdf5 file with as many datasets as chunks.
-    
+
     Arguments:
     ----------
         arr: array to split
@@ -43,13 +44,16 @@ def split_to_hdf5(arr, f, nb_blocks=None):
 
 if __name__ == "__main__":
     paths = [
+        "/home/tguedon/dask_io_experiments/",
         "/home/tguedon/dask_io",
         "/home/tguedon/dask",
-        "/home/tguedon/dask_io_experiments/",
+        "/home/tguedon"
     ]
     for path in paths:
         sys.path.insert(0, path)
-    
+
+    print(sys.path)
+
     import dask
     import dask.array as da
     import dask_io
@@ -61,19 +65,19 @@ if __name__ == "__main__":
     # arguments
     input_array_shape = (3850, 3025, 3500)
     split_cs = (770, 605, 700)
-    input_directory = 
-    output_directory = 
+    input_directory = "/data/inputs"
+    output_directory = "/data/outputs"
     ONE_GIG = 1000000000
     buffers_to_test = [3*ONE_GIG, 9*ONE_GIG]
-    
+
     # create directories if do not exist
     for dirpath in [input_directory, output_directory]:
         if not os.path.isdir(dirpath):
             os.mkdir(dirpath)
-    
+
     # remove output file if already exists
-    input_array_name = "original_array"
-    output_array_name = "split_array"
+    input_array_name = "original_array.hdf5"
+    output_array_name = "split_array.hdf5"
     input_filepath = os.path.join(input_directory, input_array_name)
     output_filepath = os.path.join(input_directory, output_array_name)
     if os.path.isfile(output_array_name):
@@ -84,7 +88,7 @@ if __name__ == "__main__":
         print('Creating input array...')
         create_array(input_filepath, input_array_shape)
 
-    # split 
+    # split
     times = list()
     for buffer in buffers_to_test:
         print("RUNNING BUFFER ", buffer)
@@ -126,5 +130,5 @@ if __name__ == "__main__":
     for r in times:
         print(r)
 
-    
-        
+
+
