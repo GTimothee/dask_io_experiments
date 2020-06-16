@@ -294,7 +294,8 @@ def run_test_case(run, inputfilepath, indir_path, outdir_path, results, hardware
 
 def run_case_2(run, inputfilepath, indir_path, outdir_path, results, hardware, model):
     R, O, I, B, volumestokeep = tuple(run["R"]), tuple(run["O"]), tuple(run["I"]), tuple(run["B"]), run["volumestokeep"]
-    execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, model, volumestokeep, rechunk_input=B)
+    rechunk_input = (min(B[0], I[0]), min(B[1], I[1]), min(B[2], I[2]))
+    execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, model, volumestokeep, rechunk_input=rechunk_input)
 
 
 def run_case_1(run, inputfilepath, indir_path, outdir_path, results, hardware, model):
