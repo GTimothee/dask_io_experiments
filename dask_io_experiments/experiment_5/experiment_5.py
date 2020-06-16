@@ -172,8 +172,8 @@ def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep, rechunk_input)
     print("Merged array, rechunk:", reconstructed_array)
 
     rechunk_task, out_files = apply_store(B, O, R, volumestokeep, reconstructed_array)
-    rechunk_task.visualize(filename="tmp_dir/test_graph_keep.png")
-    sys.exit()
+    # rechunk_task.visualize(filename="tmp_dir/test_graph_keep.png")
+    # sys.exit()
 
 
     print(f'Running algorithm...')
@@ -222,8 +222,8 @@ def rechunk_vanilla_dask(indir_path, outdir_path, nthreads, R, O):
                 targets.append(dset)
 
     rechunk_task = da.store(sources, targets, compute=False)
-    rechunk_task.visualize(filename="tmp_dir/test_graph_vanilla.png")
-    sys.exit()
+    # rechunk_task.visualize(filename="tmp_dir/test_graph_vanilla.png")
+    # sys.exit()
 
     with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
         scheduler = 'single-threaded' if nthreads == 1 else 'threads'
