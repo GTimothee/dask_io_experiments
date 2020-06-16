@@ -148,7 +148,7 @@ def run_to_hdf5(arr, params, uid, cs, opti_status):
                 msg = "optimized"
             else:
                 msg = "non_opti"
-            diagnostics = os.path.join(paths["outdir"], 'exp1_' + cs + "_" + non_opti + "_" + str(uid) + '.html')
+            diagnostics = os.path.join(paths["outdir"], 'exp1_' + cs + "_" + msg + "_" + str(uid) + '.html')
             # visualize([prof, rprof, cprof], diagnostics)   
         else:
             diagnostics = None
