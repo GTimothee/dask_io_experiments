@@ -7,7 +7,7 @@ def create_array(input_filepath, shape):
     arr = da.random.normal(size=shape)
     arr = arr.astype(np.float16)
     da.to_hdf5(input_filepath, '/data', arr, chunks=None, compression=None)
-    with h5py.File(file_path, 'r') as f:
+    with h5py.File(input_filepath, 'r') as f:
         print(f'Inspecting original array just created...')
         for k, v in f.items():
             print(f'\tFound object {v.name} at key {k}')
