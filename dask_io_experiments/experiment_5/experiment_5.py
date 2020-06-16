@@ -534,6 +534,8 @@ if __name__ == "__main__":
                 execute_run = run_case_1
             elif case_name == "case 2":
                 execute_run = run_case_2
+            elif case_name == "case 3":
+                execute_run = run_case_2
             else:
                 print("not supported yet")
                 continue
