@@ -151,7 +151,7 @@ def apply_store(B, O, R, volumestokeep, reconstructed_array):
         
         for i, st in enumerate(sliceslistoflist):
             tmp_array = reconstructed_array[st[0], st[1], st[2]]
-            print("Volume to be stored shape: ", tmp_array.shape)
+            # print("Volume to be stored shape: ", tmp_array.shape)
             reg = d_regions[outfile_index][i]
             tmp_array = tmp_array.rechunk(tmp_array.shape)
             
@@ -172,7 +172,11 @@ def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep, rechunk_input)
     print("Merged array, rechunk:", reconstructed_array)
 
     rechunk_task, out_files = apply_store(B, O, R, volumestokeep, reconstructed_array)
+    rechunk_task.visualize(filename="tmp_dir/test_graph_keep.png")
+    sys.exit()
 
+
+    print(f'Running algorithm...')
     with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
         with dask.config.set(scheduler='single-threaded'):
             try:
@@ -218,6 +222,8 @@ def rechunk_vanilla_dask(indir_path, outdir_path, nthreads, R, O):
                 targets.append(dset)
 
     rechunk_task = da.store(sources, targets, compute=False)
+    rechunk_task.visualize(filename="tmp_dir/test_graph_vanilla.png")
+    sys.exit()
 
     with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof, CacheProfiler() as cprof:
         scheduler = 'single-threaded' if nthreads == 1 else 'threads'
@@ -358,6 +364,7 @@ def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, m
     split(inputfilepath, I, indir_path)  # initially split the input array
 
     print(f'Rechunking with model "{model}"...')
+    disable_clustering()
     flush_cache()
     try:
         t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep, rechunk_input)
