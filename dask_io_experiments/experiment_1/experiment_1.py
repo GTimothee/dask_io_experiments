@@ -106,7 +106,7 @@ def verify_results_split(R, I, input_array_path, datadir):
     return all_true
 
 
-def run_to_hdf5(arr, params, uid):
+def run_to_hdf5(arr, params, uid, cs, opti_status):
     """ Execute a dask array with a given configuration.
     
     Arguments:
@@ -144,7 +144,11 @@ def run_to_hdf5(arr, params, uid):
             _monitor.stop()
 
         if t != None:
-            diagnostics = os.path.join(paths["outdir"], str(uid) + '.html')
+            if opti_status:
+                msg = "optimized"
+            else:
+                msg = "non_opti"
+            diagnostics = os.path.join(paths["outdir"], 'exp1_' + cs + "_" + msg + "_" + str(uid) + '.html')
             # visualize([prof, rprof, cprof], diagnostics)   
         else:
             diagnostics = None
@@ -175,7 +179,7 @@ def run_test(test, paths):
     flush_cache()
     try:
         arr = splitcase.get()
-        tsplit, diagnostics_split, monitor_split = run_to_hdf5(arr, params, uid)
+        tsplit, diagnostics_split, monitor_split = run_to_hdf5(arr, params, uid, str(params["chunk_shape"]), params["optimized"])
     except Exception as e: 
         print(e)
         return [
