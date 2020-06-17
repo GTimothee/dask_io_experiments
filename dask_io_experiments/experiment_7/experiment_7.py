@@ -99,9 +99,8 @@ if __name__ == "__main__":
             in_arr = da.from_array(dset, chunks=split_cs)
 
             with h5py.File(output_filepath, 'x') as f_out: # open split array
-                split_arr = split_to_hdf5(in_arr, f_out, nb_blocks=None)
-
                 # run optimized
+                split_arr = split_to_hdf5(in_arr, f_out, nb_blocks=None)
                 print("RUNNING OPTIMIZED")
                 enable_clustering(buffer)
                 flush_cache()
@@ -116,6 +115,7 @@ if __name__ == "__main__":
                 os.remove(output_filepath) # remove output file for next run
 
                 # run non optimized
+                split_arr = split_to_hdf5(in_arr, f_out, nb_blocks=None)
                 print("RUNNING NON OPTIMIZED")
                 disable_clustering()
                 flush_cache()

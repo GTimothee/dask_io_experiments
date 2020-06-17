@@ -149,7 +149,7 @@ def run_to_hdf5(arr, params, uid, cs, opti_status):
             else:
                 msg = "non_opti"
             diagnostics = os.path.join(paths["outdir"], 'exp1_' + cs + "_" + msg + "_" + str(uid) + '.html')
-            # visualize([prof, rprof, cprof], diagnostics)   
+            visualize([prof, rprof, cprof], diagnostics, show=False)   
         else:
             diagnostics = None
         return t, diagnostics, write_monitor_logs(_monitor, uid, paths)
@@ -392,11 +392,11 @@ if __name__ == "__main__":
             'blocks':[
                 # (350, 350, 350),
                 # (500, 500, 500),
-                (875, 875, 875),
+                (500, 500, 500),
             ],
             'slabs':[
                 # (28, 3500, 3500),
-                (50, 3500, 3500),]
+                (10, 3500, 3500),]
         },
         # 'big_brain':{
         #     'shape': (3850, 3025, 3500),
