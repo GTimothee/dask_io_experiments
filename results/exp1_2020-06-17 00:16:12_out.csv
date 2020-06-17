@@ -1,0 +1,5 @@
+hardware,cuboid_name,array_shape,chunk_type,chunk_shape,optimized,buffer_size,nthreads,processing_time_split,processing_time_merge,diagnostics_split,diagnostics_merge,monitor_split,monitor_merge,success_run_split,success_run_merge
+ssd,big,"(3500, 3500, 3500)",slabs,"(50, 3500, 3500)",True,10000000000,1,3552.6865,,,,,,,
+ssd,big,"(3500, 3500, 3500)",blocks,"(875, 875, 875)",True,10000000000,1,3588.9669,,,,,,,
+ssd,big,"(3500, 3500, 3500)",blocks,"(875, 875, 875)",False,10000000000,,3641.0066,,,,,,,
+ssd,big,"(3500, 3500, 3500)",slabs,"(50, 3500, 3500)",False,10000000000,,3549.5221,,,,,,,
