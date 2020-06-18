@@ -102,7 +102,7 @@ def custom_imports(paths):
         return False 
 
     for k, path in paths.items():
-        if "lib_" in k and not isempty(path):
+        if "lib_" in k and not isempty(path) and not path == "lib_custom_dask_path":
             sys.path.insert(0, path)
 
 def split(inputfilepath, I, datadir):
@@ -118,10 +118,10 @@ def split(inputfilepath, I, datadir):
     case.split_hdf5_multiple(datadir, nb_blocks=None) 
     arr = case.get()
     buffer_shape = ONE_GIG * 5
-    enable_clustering(buffer_shape)
+    # enable_clustering(buffer_shape)
     with dask.config.set(scheduler='single-threaded'):
         arr.compute()
-    disable_clustering()
+    # disable_clustering()
     case.clean()
     print(f'Split done.')
 
@@ -344,7 +344,7 @@ def create_test_array(filepath, shape):
     - Dataset key = /data
     - Dtype = float16
     """
-    disable_clustering()
+    # disable_clustering()
     if not os.path.isfile(filepath):
         print("Creating input array for the experiment...")
         arr = create_random_dask_array(shape, distrib='normal', dtype=np.float16)
@@ -365,7 +365,7 @@ def execute(R,O,I,B,inputfilepath, indir_path, outdir_path, results, hardware, m
     split(inputfilepath, I, indir_path)  # initially split the input array
 
     print(f'Rechunking with model "{model}"...')
-    disable_clustering()
+    # disable_clustering()
     flush_cache()
     try:
         t = rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep, rechunk_input)
@@ -487,7 +487,7 @@ if __name__ == "__main__":
     from dask_io.optimizer.utils.get_arrays import create_random_dask_array, save_to_hdf5, get_dask_array_from_hdf5, clean_files
     from dask_io.optimizer.utils.array_utils import inspect_h5py_file
     from dask_io.optimizer.cases.case_validation import check_split_output_hdf5
-    from dask_io.optimizer.configure import enable_clustering, disable_clustering
+    # from dask_io.optimizer.configure import enable_clustering, disable_clustering
     from dask_io.optimizer.cases.case_config import Split, Merge
     from dask_io.optimizer.cases.resplit_case import compute_zones
     from dask_io.optimizer.cases.resplit_utils import get_blocks_shape
