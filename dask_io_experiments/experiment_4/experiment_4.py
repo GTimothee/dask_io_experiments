@@ -59,7 +59,7 @@ def create_test_array(datadir, testmode, filepath):
     if testmode:
         shape = (50,50,50) 
     else:
-        shape = (1925, 1512, 1750) # 1/8 of big brain size
+        shape = (3850, 3025, 3500) # big brain size
     
     arr = create_random_dask_array(shape, distrib='uniform', dtype=np.float16)
 
@@ -84,8 +84,8 @@ Both chunk shapes are ~same size in voxels:
     chunks partition: (7,8,7)
 """
 chunk_shapes = {
-    "good_cs": (5,1512,1750),
-    "bad_cs": (275,189,250),
+    "good_cs": (35,3025,3500),
+    "bad_cs": (770,605,700),
     "testshape1": (10,10,10),
     "testshape2": (25,25,25)
 }
@@ -113,7 +113,8 @@ def split(datadir, filepath, cs, split_files=True):
         splitcase.split_hdf5(out_filepath, nb_blocks=None)
     arr = splitcase.get()
     try:
-        tsplit = run(arr)
+        with dask.config.set(scheduler='single-threaded'):
+            tsplit = run(arr)
         splitcase.clean()
         return tsplit
     except Exception as e: 
@@ -129,7 +130,8 @@ def merge(datadir):
     mergecase.merge_hdf5_multiple(datadir, data_key='/data', store=True)
     arr = mergecase.get()
     try:
-        tmerge = run(arr)
+        with dask.config.set(scheduler='single-threaded'):
+            tmerge = run(arr)
         mergecase.clean()
     except Exception as e: 
         print(e, "\nOops something went wrong... Aborting.")
