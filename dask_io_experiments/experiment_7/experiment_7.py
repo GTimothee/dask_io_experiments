@@ -2,7 +2,8 @@ import numpy as np
 import os
 import h5py
 import sys
-
+from cachey import nbytes
+import time
 
 def create_array(input_filepath, shape):
     arr = da.random.normal(size=shape)
@@ -79,7 +80,7 @@ if __name__ == "__main__":
     input_array_name = "original_array.hdf5"
     output_array_name = "split_array.hdf5"
     input_filepath = os.path.join(input_directory, input_array_name)
-    output_filepath = os.path.join(input_directory, output_array_name)
+    output_filepath = os.path.join(output_directory, output_array_name)
     if os.path.isfile(output_array_name):
         os.remove(output_array_name)
 
@@ -97,7 +98,7 @@ if __name__ == "__main__":
             dset = f_in['/data']
             in_arr = da.from_array(dset, chunks=split_cs)
 
-            with h5py.File(output_filepath, 'r') as f_out: # open split array
+            with h5py.File(output_filepath, 'x') as f_out: # open split array
                 # run optimized
                 split_arr = split_to_hdf5(in_arr, f_out, nb_blocks=None)
                 print("RUNNING OPTIMIZED")
