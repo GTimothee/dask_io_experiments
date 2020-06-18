@@ -112,8 +112,8 @@ if __name__ == "__main__":
                         times.append([buffer, t, "optimized"])
                         visualize([prof, rprof, cprof], os.path.join(output_directory, str(buffer) + "opti" + ".html"), show=False)
 
-                os.remove(output_filepath) # remove output file for next run
-
+            os.remove(output_filepath) # remove output file for next run
+            with h5py.File(output_filepath, 'x') as f_out: # open split array
                 # run non optimized
                 split_arr = split_to_hdf5(in_arr, f_out, nb_blocks=None)
                 print("RUNNING NON OPTIMIZED")
@@ -126,7 +126,7 @@ if __name__ == "__main__":
                     times.append([buffer, t, "non optimized"])
                     visualize([prof, rprof, cprof], os.path.join(output_directory, str(buffer) + "nonopti" + ".html"), show=False)
 
-                os.remove(output_filepath) # remove output file for next run
+            os.remove(output_filepath) # remove output file for next run
 
     for r in times:
         print(r)
