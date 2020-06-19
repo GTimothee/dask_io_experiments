@@ -123,14 +123,21 @@ def rechunk_plain_python(indir_path, outdir_path, B, O, I, R):
     """ Naive rechunk implementation in plain python
     """
     globals()['dask_io'] = __import__('dask_io')
+    globals()['monitor'] = __import__('monitor')
     
     from dask_io.optimizer.cases.resplit_utils import get_blocks_shape, get_named_volumes, hypercubes_overlap
     from dask_io.optimizer.utils.get_arrays import get_dataset, clean_files
+    from monitor.monitor import Monitor
 
     infiles_partition = get_blocks_shape(R, I)
     infiles_volumes = get_named_volumes(infiles_partition, I)
     outfiles_partition = get_blocks_shape(R, O)
     outfiles_volumes = get_named_volumes(outfiles_partition, O)
+
+    _monitor = Monitor(enable_print=True, enable_log=False, save_data=False)
+    _monitor.disable_clearconsole()
+    _monitor.set_delay(100)
+    _monitor.start()
 
     t = time.time()
     for infilepath in get_input_files(indir_path):
@@ -141,4 +148,6 @@ def rechunk_plain_python(indir_path, outdir_path, B, O, I, R):
                 write_to_outfile(involume, outvolume, data, outfiles_partition, outdir_path, O)
         clean_files()  # close opened files
     t = time.time() - t
+
+    _monitor.stop()
     return t

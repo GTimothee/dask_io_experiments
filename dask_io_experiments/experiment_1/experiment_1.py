@@ -132,9 +132,9 @@ def run_to_hdf5(arr, params, uid, cs, opti_status):
 
     
     with Profiler() as prof, ResourceProfiler() as rprof, CacheProfiler(metric=nbytes) as cprof:  
-        _monitor = Monitor(enable_print=False, enable_log=False, save_data=True)
+        _monitor = Monitor(enable_print=True, enable_log=False, save_data=True)
         _monitor.disable_clearconsole()
-        _monitor.set_delay(15)
+        _monitor.set_delay(100)
         _monitor.start() 
 
         t = None

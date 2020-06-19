@@ -498,6 +498,7 @@ if __name__ == "__main__":
     from dask_io.optimizer.cases.resplit_utils import get_blocks_shape
     from dask_io_experiments.experiment_5.plain_python_model import rechunk_plain_python
     from dask_io_experiments.experiment_5.helper import *
+    from monitor.monitor import Monitor
 
     import logging
     import logging.config
