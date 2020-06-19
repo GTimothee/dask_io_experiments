@@ -32,14 +32,18 @@ def get_arguments():
         help='Number of threads for use with dask local scheduler for NON optimized run. Default is None => chosen by dask.',
         dest='nthreads_non_opti',
         default=None)
-    parser.add_argument('-c', '--cuboids', action='store', 
-        type=list, 
-        help='Cuboids to experiment with. Experiment processes all cuboids by default.',
-        dest='cuboids',
-        default=None)
+    parser.add_argument('-c', '--cuboid', action='store', 
+        type=str, 
+        help='Data to experiment with.',
+        dest='cuboid',
+        default="small")
     parser.add_argument('-t', '--testmode', action='store_true',
         dest='testmode',
         help='Test if setup working.',
+        default=False)
+    parser.add_argument('-o', '--overwrite', action='store_true',
+        dest='overwrite',
+        help='Overwrite input file if already exists',
         default=False)
     return parser.parse_args()
 
@@ -376,16 +380,16 @@ if __name__ == "__main__":
         #     'blocks':[(100, 100, 100)], # 64 blocks
         #     'slabs':[(5, 400, 400)] # 80 slabs
         # },
-        # 'small': {
-        #     'shape':  (1400, 1400, 1400),
-        #     'buffer_size': 5.5 * ONE_GIG,
-        #     'blocks':[
-        #         (700, 700, 700)],
-        #     'slabs':[
-        #         ("auto", 1400, 1400), 
-        #         (5, 1400, 1400),
-        #         (175, 1400, 1400)]
-        # },
+        'small': {
+            'shape':  (1400, 1400, 1400),
+            'buffer_size': 5 * ONE_GIG,
+            'blocks':[
+                (700, 700, 700)],
+            'slabs':[
+                # ("auto", 1400, 1400), 
+                # (5, 1400, 1400),
+                (175, 1400, 1400)]
+        },
         'big': {
             'shape': (3500, 3500, 3500),
             'buffer_size': 10 * ONE_GIG,
@@ -409,20 +413,14 @@ if __name__ == "__main__":
         # }
     }
 
-    for p in [paths["hdd_path"], paths["ssd_path"]]:
+    for p in [paths["ssd_path"]]:
         clean_directory(p)
 
-        for cuboid_name in ["big"]: # ["test", "small", "big", "big_brain"]:
-            fp = os.path.join(p, cuboid_name + ".hdf5")
-            if os.path.isfile(fp):
-                print(f'Removing file {fp}')
-                os.remove(fp)
-            else:
-                print(f'Input file {fp} does not exist')
-
-    if args.cuboids == None: 
-        args.cuboids = list(cuboids.keys())
-    if args.testmode:
-        args.cuboids = ['test']
+        fp = os.path.join(p, args.cuboid + ".hdf5")
+        if os.path.isfile(fp) and args.overwrite: # TODO
+            print(f'Overwrite activated, removing file {fp}....')
+            os.remove(fp)
+        else:
+            print(f'Input file {fp} does not exist, it will be created...')
 
     experiment1()
