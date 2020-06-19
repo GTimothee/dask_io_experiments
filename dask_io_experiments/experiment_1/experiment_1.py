@@ -221,7 +221,7 @@ def run_test(test, paths):
     flush_cache()
     try:
         arr = mergecase.get()
-        tmerge, diagnostics_merge, monitor_merge = run_to_hdf5(arr, params, uid)
+        tmerge, diagnostics_merge, monitor_merge = run_to_hdf5(arr, params, uid, str(params["chunk_shape"]), params["optimized"])
     except Exception as e: 
         print(e)
         return [
