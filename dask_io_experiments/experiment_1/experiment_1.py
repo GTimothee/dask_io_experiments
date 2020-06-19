@@ -304,7 +304,7 @@ def create_tests():
     print(f'Generating tests...')
     options = [
         ["ssd"], # WARNING running on ssd only
-        args.cuboids,
+        [args.cuboid],
         ["optimized", "non_optimized"]
     ]
     cartesian_res = [e for e in itertools.product(*options)]
