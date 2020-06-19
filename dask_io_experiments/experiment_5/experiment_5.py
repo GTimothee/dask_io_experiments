@@ -162,7 +162,7 @@ def apply_store(B, O, R, volumestokeep, reconstructed_array):
     return da.store(sources, targets, regions=regions, compute=False), out_files
 
 
-def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep, rechunk_input):
+def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep, rechunk_input, model):
     case = Merge('samplename')
     case.merge_hdf5_multiple(indir_path, store=False, rechunk_input=rechunk_input)
     reconstructed_array = case.get()
@@ -188,13 +188,15 @@ def rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep, rechunk_input)
                 print(e, "\nSomething went wrong during graph execution.")
                 t = None
 
+        diagnostics = os.path.join(outdir_path, 'exp5_' + str(model) + '.html')
+        visualize([prof, rprof, cprof], diagnostics, show=False)   
     case.clean()
     for f in out_files:
         f.close()
     return t
 
 
-def rechunk_vanilla_dask(indir_path, outdir_path, nthreads, R, O):
+def rechunk_vanilla_dask(indir_path, outdir_path, nthreads, R, O, model):
     """ Rechunk using vanilla dask
     """
     in_arrays = load_input_files(indir_path)
@@ -238,6 +240,9 @@ def rechunk_vanilla_dask(indir_path, outdir_path, nthreads, R, O):
                 print(e, "\nSomething went wrong during graph execution.")
                 t = None
 
+        diagnostics = os.path.join(outdir_path, 'exp5_' + str(model) + '.html')
+        visualize([prof, rprof, cprof], diagnostics, show=False)  
+
     clean_files()
 
     for f in out_files:
@@ -250,13 +255,13 @@ def rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep, rechunk_i
     """ Rechunk data chunks stored into datadir using a given model.
     """
     if model == "vanilla1":
-        return rechunk_vanilla_dask(indir_path, outdir_path, 1, R, O,)
+        return rechunk_vanilla_dask(indir_path, outdir_path, 1, R, O,model)
     elif model == "vanillan":
-        return rechunk_vanilla_dask(indir_path, outdir_path, None, R, O)
+        return rechunk_vanilla_dask(indir_path, outdir_path, None, R, O, model)
     elif model == "keep":
-        return rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep, rechunk_input)
+        return rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep, rechunk_input, model)
     else:  # use plain python 
-        return rechunk_plain_python(indir_path, outdir_path, B, O, I, R)
+        return rechunk_plain_python(indir_path, outdir_path, B, O, I, R, model)
 
 
 def verify_results(outdir_path, original_array_path, R, O):
