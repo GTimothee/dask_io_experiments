@@ -261,7 +261,7 @@ def rechunk(indir_path, outdir_path, model, B, O, I, R, volumestokeep, rechunk_i
     elif model == "keep":
         return rechunk_keep(indir_path, outdir_path, B, O, R, volumestokeep, rechunk_input, model)
     else:  # use plain python 
-        return rechunk_plain_python(indir_path, outdir_path, B, O, I, R, model)
+        return rechunk_plain_python(indir_path, outdir_path, B, O, I, R)
 
 
 def verify_results(outdir_path, original_array_path, R, O):
@@ -516,10 +516,13 @@ if __name__ == "__main__":
         print("Data directory: ", datadir)
 
         inputfilepath = os.path.join(datadir, "original_array.hdf5")
-        if os.path.isfile(inputfilepath) and args.overwritearray:
-            print(f'Removing input file before starting...')
-            os.remove(inputfilepath)
-            print(f'Done.')
+        if os.path.isfile(inputfilepath):
+            if args.overwritearray:
+                print(f'Removing input file before starting...')
+                os.remove(inputfilepath)
+                print(f'Done.')
+            else:
+                print(f'Original array already exists, "overwrite" flag disabled, continuing with this array...')
 
         # create 2 directories in datadir
         print("Creating data directories...")
