@@ -369,9 +369,7 @@ if __name__ == "__main__":
     from dask_io_experiments.test_config import TestConfig
     from dask_io_experiments.experiment_1.helpers import *
     from monitor.monitor import Monitor
-    import dask.distributed as dd 
-    from dd import Client, LocalCluster
-    from dd import performance_report
+    from dask.distributed import Client, LocalCluster, performance_report 
     import socket
 
     cluster = LocalCluster(n_workers=1, threads_per_worker=1, processes=False)
