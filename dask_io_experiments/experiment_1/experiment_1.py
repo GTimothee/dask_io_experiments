@@ -162,7 +162,7 @@ def run_to_hdf5(arr, params, uid, cs, opti_status):
         # visualize([prof, rprof, cprof], diagnostics, show=False)   
     else:
         diagnostics = None
-    return t, diagnostics, write_monitor_logs(_monitor, uid, paths)
+    return t, diagnostics, None # write_monitor_logs(_monitor, uid, paths)
     
         
 def run_test(test, paths):
