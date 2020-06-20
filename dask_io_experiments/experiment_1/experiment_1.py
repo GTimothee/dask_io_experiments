@@ -131,32 +131,38 @@ def run_to_hdf5(arr, params, uid, cs, opti_status):
         #         return _compute(arr)
         # else:
         #     return _compute(arr)
-        with dask.config.set(scheduler='single-threaded'):
-            return _compute(arr)
+        # with dask.config.set(scheduler='single-threaded'):
+        
+        return _compute(arr)
 
     
-    with Profiler() as prof, ResourceProfiler() as rprof, CacheProfiler(metric=nbytes) as cprof:  
-        _monitor = Monitor(enable_print=True, enable_log=False, save_data=True)
-        _monitor.disable_clearconsole()
-        _monitor.set_delay(100)
-        _monitor.start() 
+    # with Profiler() as prof, ResourceProfiler() as rprof, CacheProfiler(metric=nbytes) as cprof:  
+    # _monitor = Monitor(enable_print=True, enable_log=False, save_data=True)
+    # _monitor.disable_clearconsole()
+    # _monitor.set_delay(100)
+    # _monitor.start() 
 
-        t = None
-        try:
+    msg = None
+    if opti_status:
+        msg = "optimized"
+    else:
+        msg = "non_opti"
+    diagnostics = os.path.join(paths["outdir"], 'exp1_' + cs + "_" + msg + "_" + str(uid) + '.html')
+    t = None
+    try:
+        with performance_report(filename=diagnostics):
             t = _compute_arr(arr)  
-        finally:
-            _monitor.stop()
+    except Exception as e:
+        print(e, 'something went wrong')
+    # finally:
+    #     _monitor.stop()
 
-        if t != None:
-            if opti_status:
-                msg = "optimized"
-            else:
-                msg = "non_opti"
-            diagnostics = os.path.join(paths["outdir"], 'exp1_' + cs + "_" + msg + "_" + str(uid) + '.html')
-            visualize([prof, rprof, cprof], diagnostics, show=False)   
-        else:
-            diagnostics = None
-        return t, diagnostics, write_monitor_logs(_monitor, uid, paths)
+    if t != None:
+        pass
+        # visualize([prof, rprof, cprof], diagnostics, show=False)   
+    else:
+        diagnostics = None
+    return t, diagnostics, write_monitor_logs(_monitor, uid, paths)
     
         
 def run_test(test, paths):
@@ -363,6 +369,13 @@ if __name__ == "__main__":
     from dask_io_experiments.test_config import TestConfig
     from dask_io_experiments.experiment_1.helpers import *
     from monitor.monitor import Monitor
+    from dask.distributed import Client, LocalCluster
+    from dask.distributed import performance_report
+    import socket
+
+    cluster = LocalCluster(n_workers=1, threads_per_worker=1, processes=False)
+    client = Client(cluster, host=socket.gethostname(), memory_limit='8GB', processes=False)
+    print("Dask distributed configuration: ", client)
 
     print("Output of monitor will be printed in 'outdir' if the run was successful.")
     print("Output csv file of experiment will be printed in 'outdir' even if a run failed.")
