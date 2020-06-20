@@ -358,7 +358,6 @@ if __name__ == "__main__":
     paths = load_config(args.config_filepath)
     custom_imports(paths)
 
-    import dask
     import dask.array as da
     import dask_io
     from dask.diagnostics import ResourceProfiler, Profiler, CacheProfiler, visualize
@@ -370,10 +369,11 @@ if __name__ == "__main__":
     from dask_io_experiments.experiment_1.helpers import *
     from monitor.monitor import Monitor
     from dask.distributed import Client, LocalCluster
+    # from dask.distributed import performance_report
     import socket
 
-    cluster = LocalCluster(n_workers=1, threads_per_worker=1, processes=False)
-    client = Client(cluster, host=socket.gethostname(), memory_limit='8GB', processes=False)
+    cluster = LocalCluster(n_workers=1, threads_per_worker=1, processes=False, host=socket.gethostname(), memory_limit='8GB', processes=False)
+    client = Client(cluster)
     print("Dask distributed configuration: ", client)
 
     print("Output of monitor will be printed in 'outdir' if the run was successful.")
