@@ -150,8 +150,8 @@ def run_to_hdf5(arr, params, uid, cs, opti_status):
     diagnostics = os.path.join(paths["outdir"], 'exp1_' + cs + "_" + msg + "_" + str(uid) + '.html')
     t = None
     try:
-        with performance_report(filename=diagnostics):
-            t = _compute_arr(arr)  
+        # with performance_report(filename=diagnostics):
+        t = _compute_arr(arr)  
     except Exception as e:
         print(e, 'something went wrong')
     # finally:
@@ -369,7 +369,7 @@ if __name__ == "__main__":
     from dask_io_experiments.test_config import TestConfig
     from dask_io_experiments.experiment_1.helpers import *
     from monitor.monitor import Monitor
-    from dask.distributed import Client, LocalCluster, performance_report 
+    from dask.distributed import Client, LocalCluster
     import socket
 
     cluster = LocalCluster(n_workers=1, threads_per_worker=1, processes=False)
