@@ -372,8 +372,8 @@ if __name__ == "__main__":
     # from dask.distributed import performance_report
     import socket
 
-    cluster = LocalCluster(n_workers=1, threads_per_worker=1, processes=False, host=socket.gethostname(), memory_limit='8GB', processes=False)
-    client = Client(cluster)
+    cluster = LocalCluster(n_workers=1, threads_per_worker=1, host=socket.gethostname(), processes=False)
+    client = Client(cluster) # memory_limit='8GB'
     print("Dask distributed configuration: ", client)
 
     print("Output of monitor will be printed in 'outdir' if the run was successful.")
